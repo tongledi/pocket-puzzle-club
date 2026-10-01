@@ -1,4 +1,4 @@
-import {shuffle,button,range,grids,clone} from './core.js?v=1.7.0';
+import {shuffle,button,range,grids,clone} from './core.js?v=1.7.1';
 export const waterColors=['#de6557','#477ace','#edbd43','#7760a9','#299a84'];
 const waterNames=['Coral','Blue','Gold','Violet','Jade'];
 const waterSymbols=['●','◆','★','✿','▲'];
