@@ -1,10 +1,10 @@
-import { commitDrag, installDragControls } from './drag.js?v=1.8.1';
-import {games as classics} from './games/classics.js?v=1.8.1';
-import {games as modern} from './games/modern.js?v=1.8.1';
-import {games as logic} from './games/logic.js?v=1.8.1';
-import {clone,button} from './games/core.js?v=1.8.1';
+import { commitDrag, installDragControls } from './drag.js?v=1.8.2';
+import {games as classics} from './games/classics.js?v=1.8.2';
+import {games as modern} from './games/modern.js?v=1.8.2';
+import {games as logic} from './games/logic.js?v=1.8.2';
+import {clone,button} from './games/core.js?v=1.8.2';
 const games=[...classics,...modern,...logic],byId=Object.fromEntries(games.map(g=>[g.id,g]));
-const app=document.querySelector('#app'),VERSION='1.8.1',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
+const app=document.querySelector('#app'),VERSION='1.8.2',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
 let storageOK=true,saves={},recent=[],bestScores={},current=null,paused=false,confirmAction=null,notice='',rulesState={},lastTick=performance.now();
 let dragControls=null,helpOpen=false,settingsOpen=false,editingFavorites=false;
 let lobbyView=location.hash==='#favorites'?'favorites':'all',lobbyFilter='all',lobbyScroll=0,favoriteWarning='';
