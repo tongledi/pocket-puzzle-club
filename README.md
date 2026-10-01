@@ -135,3 +135,8 @@ Source and VM tests verify logic, not physical-device touch or screen-reader usa
 Run `npm test` for the aggregate suite. `npm run dev -- --base=/pocket-puzzle-club/dist/` simulates the production path and serves the manifest/PNG MIME types. No install/build step is required. Local browser navigation is restricted in the current QA environment, so this release has **not** received browser visual QA, physical-device installation testing or live deployment verification. No app has been installed on the QA host.
 
 Implementation references: [browser install criteria](https://web.dev/articles/install-criteria), [manifest ID processing](https://www.w3.org/TR/appmanifest/#id-member), [iPhone web apps](https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios), [Mac Safari web apps](https://support.apple.com/en-gb/104996). Native prompt availability remains controlled by the browser and its eligibility/engagement rules.
+
+
+### Install guide layout fix 1.5.3
+
+Live browser QA found that the legacy confirmation action-row CSS also applied to the install guide, placing its text in narrow columns. The install guide now has an explicit, more-specific block layout; all other dialog layouts and the lobby are unchanged. A source-level CSS/markup regression guard was added, and the full runtime/manifest asset-version graph was advanced to 1.5.3. Browser visual confirmation of this correction is a separate deployment check.
