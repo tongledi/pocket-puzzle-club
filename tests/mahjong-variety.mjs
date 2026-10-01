@@ -1,4 +1,4 @@
-let {mahjong,freeTile,mahjongSolve,mahjongBlockReason}=await import('../dist/games/classics.js');
+let {mahjong,freeTile,mahjongSolve,mahjongGeometry,mahjongBlockReason}=await import('../dist/games/classics.js');
 function ok(x,m){if(!x)throw Error(m)}
 for(let r=0;r<500;r++){
  let s=mahjong.create();ok(s.tiles.length===72,'tile count');let counts={};s.tiles.forEach(t=>counts[t.type]=(counts[t.type]||0)+1);ok(Object.keys(counts).length===18&&Object.values(counts).every(c=>c===4),'type distribution');ok(new Set(s.tiles.map(t=>t.z)).size===3,'layers');ok(Math.max(...s.tiles.map(t=>t.x))===7,'max columns');
@@ -24,12 +24,17 @@ for(const reason of ['covered','side-blocked','free']){
 const explained=mahjong.view(statusBoard);ok(explained.includes('both side exits blocked')&&explained.includes('covered by an upper tile')&&explained.includes('depth-board')&&!explained.includes('mahjong-layer'),'accessible blockers and layer cues');
 console.log('PASS Mahjong distinct blocker explanations agree with legal rules and do not remove tiles');
 
-// Tile faces stay within their logical cells; only same-cell higher layers cover.
-const visualGeometry=mahjong.view(mahjong.create());
-const boxes=[...visualGeometry.matchAll(/left:([\d.]+)%;top:([\d.]+)%;width:([\d.]+)%;height:([\d.]+)%/g)].map(m=>m.slice(1).map(Number));
-const tiles=mahjong.create().tiles;ok(boxes.length===tiles.length,'one face rectangle per tile');
-for(let i=0;i<tiles.length;i++)for(let j=i+1;j<tiles.length;j++){
- const a=boxes[i],b=boxes[j],overlap=Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])>0&&Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])>0;
- ok(overlap===(tiles[i].x===tiles[j].x&&tiles[i].y===tiles[j].y),'visual overlap agrees with cover geometry');
+// Uniform portrait projection keeps adjacent exposed centers fully tappable.
+// Small projected edge overlap represents elevation, not a rule blocker.
+const visualState=mahjong.create(),projection=mahjongGeometry(visualState),visualGeometry=mahjong.view(visualState);
+const percentages=[...visualGeometry.matchAll(/left:([\d.]+)%;top:([\d.]+)%;width:([\d.]+)%;height:([\d.]+)%/g)].map(m=>m.slice(1).map(Number));
+ok(percentages.length===visualState.tiles.length,'one face rectangle per tile');
+for(let i=0;i<visualState.tiles.length;i++){
+ const a=projection.boxes[i],t=visualState.tiles[i],cx=a.left+a.width/2,cy=a.top+a.height/2;
+ ok(Math.abs(a.height/a.width-1.34)<1e-9,'portrait face ratio');
+ const p=percentages[i];ok(Math.abs((p[3]*projection.height)/(p[2]*projection.width)-1.34)<1e-8,'rendered projection keeps portrait ratio');
+ for(let j=0;j<visualState.tiles.length;j++)if(visualState.tiles[j].z>t.z){const b=projection.boxes[j],q=visualState.tiles[j],covers=cx>b.left&&cx<b.left+b.width&&cy>b.top&&cy<b.top+b.height;ok(covers===(t.x===q.x&&t.y===q.y),'only direct upper stack covers a tile center');}
 }
-console.log('PASS every rendered Mahjong overlap matches a same-cell layer stack');
+ok(Math.abs(projection.pitchX-projection.faceWidth-.035)<1e-9,'tight horizontal seams');
+ok(Math.abs(projection.pitchY-projection.faceHeight-.035)<1e-9,'tight vertical seams');
+console.log('PASS portrait aspect, tight seams and center coverage match logical stack rules');

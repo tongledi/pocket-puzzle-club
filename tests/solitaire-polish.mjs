@@ -299,7 +299,7 @@ test('winning uses legal controller actions, stops time and supports confirmed r
   assert.equal(round(t).moves, 1); assert.equal(round(t).history.length, 1);
   assert.match(t.app.innerHTML, /class="table-result"/);
   assert.match(t.app.innerHTML, /data-action="restart"[^>]*>Replay this deal/);
-  assert.match(t.app.innerHTML, /data-action="new"[^>]*>Play another deal/);
+  assert.match(t.app.innerHTML, /data-action="deals"[^>]*>Choose another deal/);
   const completed = JSON.stringify(round(t).state), time = round(t).activeMs;
   t.advance(20000); t.tick(); t.ctx.handle('stock');
   assert.equal(round(t).activeMs, time); assert.equal(JSON.stringify(round(t).state), completed);
