@@ -21,7 +21,7 @@ for(const reason of ['covered','side-blocked','free']){
  if(reason==='side-blocked')ok(statusBoard.message.includes('left and right exits'),'specific side exit feedback');
  ok(statusBoard.tiles.filter(t=>t.gone).length===before,'inspection does not remove tiles');
 }
-const explained=mahjong.view(statusBoard);ok(explained.includes('both side exits blocked')&&explained.includes('covered by an upper tile')&&explained.includes('mahjong-layer'),'accessible blockers and layer cues');
+const explained=mahjong.view(statusBoard);ok(explained.includes('both side exits blocked')&&explained.includes('covered by an upper tile')&&explained.includes('depth-board')&&!explained.includes('mahjong-layer'),'accessible blockers and layer cues');
 console.log('PASS Mahjong distinct blocker explanations agree with legal rules and do not remove tiles');
 
 // Tile faces stay within their logical cells; only same-cell higher layers cover.

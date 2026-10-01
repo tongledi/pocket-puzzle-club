@@ -16,9 +16,9 @@ const sol=()=>({tableau:[[],[],[],[],[],[],[]],foundation:[[],[],[],[]],stock:[]
 const block=()=>({cells:Array(64).fill(0),pieces:[[[0,0]],[[0,0],[1,0]],[[0,0]]],selected:0,anchor:null,score:0,lines:0,message:''});
 const round=t=>t.ctx.inspect().saves.blocks;
 function setRound(t,state){t.ctx.handle('open','blocks');const r=round(t);r.state=clone(state);r.initial=clone(state);r.history=[];r.moves=0;r.finished=false;t.ctx.persist();t.ctx.render();return r;}
-test('Solitaire destination marks are legal, pure and tolerate stale schema-1 selectors',()=>{
+test('Solitaire target planning is pure but normal selection does not mark answers',()=>{
  const s=sol();s.waste=[card(1,0)];s.tableau[0]=[card(2,1)];s.selected='w';const before=JSON.stringify(s);
- assert.deepEqual(solitaireTargets(s),['f:0','t:0']);assert.equal(JSON.stringify(s),before);assert.equal((solitaire.view(s).match(/legal-destination/g)||[]).length,2);
+ assert.deepEqual(solitaireTargets(s),['f:0','t:0']);assert.equal(JSON.stringify(s),before);assert.equal((solitaire.view(s).match(/legal-destination/g)||[]).length,0);s.hintTarget='f:0';assert.equal((solitaire.view(s).match(/legal-destination/g)||[]).length,1);s.hintTarget=null;
  for(const invalid of ['f:99','f:no','t:99:0','t:0:99','t:0:-1','bad']){s.selected=invalid;assert.deepEqual(solitaireTargets(s),[]);assert.doesNotThrow(()=>solitaire.view(s));}
 });
 test('Rejected Solitaire targets preserve selected card, legal continuation and explicit cancellation',()=>{

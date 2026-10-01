@@ -19,7 +19,7 @@ test('Mahjong markings preserve upper-cover plus at-least-one-side-free rules',(
  const s=mahjong.create();for(let i=0;i<s.tiles.length;i++){
    const before=JSON.stringify(s.tiles),blockers=mahjongBlockers(s,i);assert.equal(!!blockers.length,!freeTile(s,i));assert(blockers.length<=2);mahjong.action(s,'tile',i);assert.equal(JSON.stringify(s.tiles),before);if(blockers.length)assert.deepEqual(s.blocked,blockers);s.selected=null;
  }
- const [a,b]=s.solution[0];mahjong.action(s,'tile',a);assert(mahjongMatches(s).includes(b));assert.match(mahjong.view(s),/matching-tile/);assert.match(mahjong.view(s),/matches selected tile/);assert(mahjong.action(s,'tile',b));assert(s.tiles[a].gone&&s.tiles[b].gone);assert.equal(s.selected,null);
+ const [a,b]=s.solution[0];mahjong.action(s,'tile',a);assert(mahjongMatches(s).includes(b));assert.doesNotMatch(mahjong.view(s),/matching-tile|matches selected tile/);assert(mahjong.action(s,'tile',b));assert(s.tiles[a].gone&&s.tiles[b].gone);assert.equal(s.selected,null);
 });
 test('Mahjong cancellation, mismatches and removed/invalid cells do not clear tiles',()=>{
  const s=mahjong.create(),a=s.solution[0][0],b=s.tiles.findIndex((t,i)=>freeTile(s,i)&&t.type!==s.tiles[a].type);mahjong.action(s,'tile',a);mahjong.action(s,'tile',a);assert.equal(s.selected,null);assert.match(s.message,/cleared/);mahjong.action(s,'tile',a);if(b>=0){mahjong.action(s,'tile',b);assert.equal(s.selected,b);assert.match(s.message,/instead/);}assert(s.tiles.every(t=>!t.gone));
@@ -28,9 +28,9 @@ test('Mahjong cancellation, mismatches and removed/invalid cells do not clear ti
 test('Mahjong blocked boards offer Undo without pretending any arbitrary route is proven',()=>{
  const s={tiles:[{x:0,y:0,z:0,type:0,gone:false},{x:1,y:0,z:0,type:1,gone:false}],selected:null};mahjong.action(s,'hint');assert.equal(s.hint,null);assert.match(s.message,/Undo/);assert(!mahjong.won(s));
 });
-test('Water pure plan equals full-run pour and every highlighted destination is legal',()=>{
- const s={tubes:[[0,1,1],[1,1,1],[2],[],[3,3,3,3],[4,4,4,4],[]],selected:0};const before=JSON.stringify(s),p=waterPourPlan(s,0,1);assert.deepEqual(p,{from:0,to:1,color:1,count:1});assert.equal(JSON.stringify(s),before);assert.match(water.view(s),/pour 1 Blue drops here/);
- const markup=water.view(s);for(let i=0;i<7;i++){const tag=markup.match(new RegExp(`<button[^>]*data-value="${i}"[^>]*>`))[0];assert.equal(tag.includes('pour-destination'),!!waterPourPlan(s,0,i));}assert.equal(water.action(s,'tube',1),true);assert.match(s.message,/1 Blue drop/);assert.match(s.message,/colour sorted/);assert.deepEqual(s.tubes[0],[0,1]);
+test('Water pure plan equals full-run pour without unsolicited destination highlights',()=>{
+ const s={tubes:[[0,1,1],[1,1,1],[2],[],[3,3,3,3],[4,4,4,4],[]],selected:0};const before=JSON.stringify(s),p=waterPourPlan(s,0,1);assert.deepEqual(p,{from:0,to:1,color:1,count:1});assert.equal(JSON.stringify(s),before);assert.doesNotMatch(water.view(s),/pour 1 Blue drops here/);
+ const markup=water.view(s);for(let i=0;i<7;i++){const tag=markup.match(new RegExp(`<button[^>]*data-value="${i}"[^>]*>`))[0];assert.equal(tag.includes('pour-destination'),false);}assert.equal(water.action(s,'tube',1),true);assert.match(s.message,/1 Blue drop/);assert.match(s.message,/colour sorted/);assert.deepEqual(s.tubes[0],[0,1]);
 });
 test('Water rejects full/mismatched destinations, retains source and supports explicit cancellation',()=>{
  const s={tubes:[[0],[1],[2,2,2,2],[],[],[],[]],selected:null};water.action(s,'tube',0);const before=JSON.stringify(s.tubes);water.action(s,'tube',1);assert.equal(s.selected,0);assert.match(s.message,/do not match/);water.action(s,'tube',2);assert.equal(s.selected,0);assert.match(s.message,/is full/);assert.equal(JSON.stringify(s.tubes),before);water.action(s,'tube',0);assert.equal(s.selected,null);water.action(s,'tube',3);assert.match(s.message,/water first/);
@@ -50,7 +50,7 @@ test('Water validates a complete saved route before claiming verification and re
  const won={tubes:[[0,0,0,0],[1,1,1,1],[2,2,2,2],[3,3,3,3],[4,4,4,4],[],[]],selected:0,hintTarget:1,path:[]};water.action(won,'hint');assert.equal(won.selected,null);assert.equal(won.hintTarget,null);assert.match(won.message,/sorted/);
 });
 test('Arrow paths trace only to the first blocker and only appear after an explicit inspection',()=>{
- const s={cells:Array(36).fill(null)};s.cells[6]=1;s.cells[9]=0;s.cells[11]=0;assert.deepEqual(arrowPath(s,6),{cells:[7,8,9],blocker:9});assert.doesNotMatch(arrows.view(s),/exit-path/);assert.equal(arrows.action(s,'arrow',6),false);assert.deepEqual(s.blocked,[6,9]);let html=arrows.view(s);assert.equal((html.match(/exit-path/g)||[]).length,3);assert.match(html,/blocks the selected exit/);assert.match(s.message,/×/);assert.equal(arrows.action(s,'arrow',9),true);assert.deepEqual(s.blocked,[]);assert.equal(s.hint,null);assert.equal(arrowPath(s,6).blocker,11);
+ const s={cells:Array(36).fill(null)};s.cells[6]=1;s.cells[9]=0;s.cells[11]=0;assert.deepEqual(arrowPath(s,6),{cells:[7,8,9],blocker:9});assert.doesNotMatch(arrows.view(s),/exit-path/);assert.equal(arrows.action(s,'arrow',6),false);assert.deepEqual(s.blocked,[6,9]);let html=arrows.view(s);assert.equal((html.match(/exit-path/g)||[]).length,0);assert.doesNotMatch(html,/blocks the selected exit/);assert.match(s.message,/Blocked/);assert.equal(arrows.action(s,'arrow',9),true);assert.deepEqual(s.blocked,[]);assert.equal(s.hint,null);assert.equal(arrowPath(s,6).blocker,11);
 });
 test('Arrow hints distinguish a truly cleared board from an impossible legacy loop',()=>{
  const s={cells:Array(36).fill(null)};s.cells[0]=1;s.cells[1]=3;arrows.action(s,'hint');assert.match(s.message,/No clear exits/);assert(!arrows.won(s));s.cells.fill(null);arrows.action(s,'hint');assert.equal(s.message,'Board cleared.');
@@ -69,7 +69,7 @@ for(const game of [mahjong,water,arrows])test(`${game.title}: legal/rapid moves,
  t.ctx.handle('restart');t.ctx.handle('confirm');const reset=t.ctx.inspect().saves[game.id];assert.equal(JSON.stringify(reset.state),JSON.stringify(s));assert.equal(reset.history.length,0);assert.equal(reset.moves,0);
 });
 test('Matching feedback has no delayed commit, respects reduced motion and stops under overlays',()=>{
- const t=boot({reducedMotion:false});setRound(t,'water',water.create());let effects=[];t.app.querySelector=()=>({focus(){},animate:(frames,options)=>effects.push({frames,options})});const plan={game:'water',targets:[{selector:'anything',kind:'pour'}]},before=JSON.stringify(t.ctx.inspect().saves);t.ctx.animatePuzzle(plan);assert.equal(effects.length,1);assert.equal(JSON.stringify(t.ctx.inspect().saves),before);assert(effects.every(e=>e.options.duration<=280&&!e.options.onfinish));
+ const t=boot({reducedMotion:false});setRound(t,'water',water.create());let effects=[];t.app.querySelector=()=>({focus(){},animate:(frames,options)=>effects.push({frames,options})});const plan={game:'water',targets:[{selector:'anything',kind:'found'}]},before=JSON.stringify(t.ctx.inspect().saves);t.ctx.animatePuzzle(plan);assert.equal(effects.length,1);assert.equal(JSON.stringify(t.ctx.inspect().saves),before);assert(effects.every(e=>e.options.duration<=280&&!e.options.onfinish));
  t.ctx.handle('help');effects=[];t.ctx.animatePuzzle(plan);assert.equal(effects.length,0);t.ctx.handle('help');t.ctx.animatePuzzle({...plan,game:'arrows'});assert.equal(effects.length,0);
  const u=boot({reducedMotion:true});setRound(u,'water',water.create());u.app.querySelector=t.app.querySelector;u.ctx.animatePuzzle(plan);assert.equal(effects.length,0);
 });
