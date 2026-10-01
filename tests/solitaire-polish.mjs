@@ -84,7 +84,7 @@ function almostWon() {
 test('all eight routes and inert Home previews survive the Solitaire-only shell', () => {
   const t = boot();
   assert.equal((t.app.innerHTML.match(/class="game-card"/g) || []).length, 8);
-  assert.equal((t.app.innerHTML.match(/<button\b/g) || []).length, 8, 'previews must not introduce nested buttons');
+  assert.ok(!/<button\b[^>]*>(?:(?!<\/button>)[\s\S])*<button\b/.test(t.app.innerHTML), 'covers must not introduce nested buttons');
   for (const id of gameIds) {
     t.ctx.handle('open', id);
     assert.equal(t.ctx.inspect().current, id);
@@ -204,8 +204,8 @@ test('Solitaire alone gets compact chrome with rules hidden until requested', ()
     t.ctx.handle('open', id);
     assert.equal(t.ctx.inspect().helpOpen, false);
     assert.doesNotMatch(t.app.innerHTML, /class="solitaire-room"/);
-    assert.match(t.app.innerHTML, /class="game-sidebar"/);
-    assert.match(t.app.innerHTML, /class="game-switcher"/);
+    assert.match(t.app.innerHTML, /class="room-header"/);
+    assert.match(t.app.innerHTML, /class="room-bottom"/);
   }
 });
 
