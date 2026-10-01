@@ -98,4 +98,7 @@ test('Word drag respects controller overlays and replacement-round remote confli
 test('Word supplemental labels stay visually hidden and narrow Sudoku leaves room for controls',()=>{
  const css=fs.readFileSync(new URL('../dist/style.css',import.meta.url),'utf8');assert.match(css,/\.words \.word-list \.sr-only\{position:absolute;width:1px;height:1px/);assert(css.includes('calc(100svh - 397px)'));assert.match(words.view(words.create()),/class="sr-only"/);
 });
+test('Sliding animation moves a pointer-inert face, never the live button hitbox',()=>{
+ const s=sliding.create(),before=clone(s),i=s.cells.findIndex((n,i)=>n&&near(i,s.cells.indexOf(0)));sliding.action(s,'tile',i);const motion=sliding.motion(before,'tile',i,s);assert(motion.targets[0].selector.endsWith(' .slide-face'));assert.match(sliding.view(s),/class="slide-face" aria-hidden="true"/);const css=fs.readFileSync(new URL('../dist/style.css',import.meta.url),'utf8');assert.match(css,/\.slide-face\{[^}]*pointer-events:none/);
+});
 console.log(`LOGIC REFINEMENT TESTS PASSED (${checks}; VM/synthetic pointer tests, not physical-device QA)`);
