@@ -1,4 +1,4 @@
-import {shuffle,button,range,clone} from './core.js?v=1.5.3';
+import {shuffle,button,range,clone} from './core.js?v=1.6.0';
 const suits=['♠','♥','♣','♦'];
 const red=c=>c.suit%2===1;
 const face=c=>`${['','A','2','3','4','5','6','7','8','9','10','J','Q','K'][c.rank]}${suits[c.suit]}`;
@@ -9,11 +9,82 @@ function card(c,a,v,cls=''){
   const middle=c.rank>10?`<span class="card-court"><em>${ranks[c.rank]}</em><i>${suits[c.suit]}</i></span>`:`<span class="card-pips ${c.rank===1?'ace-pip':''}">${pipPositions[c.rank].map(([x,y])=>`<i style="left:${x}%;top:${y}%"${y>50?' class="inverted"':''}>${suits[c.suit]}</i>`).join('')}</span>`;
   return button(c.up?`${corner}${middle}<span class="card-corner corner-bottom"><strong>${ranks[c.rank]}</strong><i>${suits[c.suit]}</i></span>`:'<span class="card-back-emblem" aria-hidden="true">♠</span>',a,v,`playing-card ${c.up?'':'back'} ${red(c)?'red':''} ${cls}`,`data-card-id="${c.suit}-${c.rank}" data-face="${c.up?'up':'down'}" aria-label="${a==='stock'?'Draw card from stock':c.up?face(c):'Face-down card'}"`);
 }
-function origin(s,sel){if(!sel)return null;let [kind,p,i]=sel.split(':');return kind==='w'?{pile:s.waste,index:s.waste.length-1}:kind==='f'?{pile:s.foundation[+p],index:s.foundation[+p].length-1}:kind==='t'?{pile:s.tableau[+p],index:+i}:null;}
+function origin(s,sel){
+  if(sel==='w')return {pile:s.waste,index:s.waste.length-1};
+  let match=/^f:([0-3])$/.exec(sel||'');
+  if(match){const pile=s.foundation[+match[1]];return {pile,index:pile.length-1};}
+  match=/^t:([0-6]):(\d+)$/.exec(sel||'');
+  return match?{pile:s.tableau[+match[1]],index:+match[2]}:null;
+}
 function sequence(cs){return cs.every((c,i)=>c.up&&(!i||cs[i-1].rank===c.rank+1&&red(cs[i-1])!==red(c)));}
 export function solitaireMove(s,from,to){let o=origin(s,from);if(!o||!o.pile||o.index<0||o.index>=o.pile.length)return false;let cards=o.pile.slice(o.index);if(!sequence(cards))return false;let [k,p]=to.split(':'),dest=k==='f'?s.foundation[+p]:k==='t'?s.tableau[+p]:null;if(!dest||dest===o.pile)return false;let last=dest.at(-1),c=cards[0];if(k==='f'){if(cards.length!==1||c.suit!==+p||c.rank!==(last?last.rank+1:1))return false;}else if(last?(!last.up||last.rank!==c.rank+1||red(last)===red(c)):c.rank!==13)return false;dest.push(...o.pile.splice(o.index));if(o.pile.length)o.pile.at(-1).up=true;s.selected=null;s.hintTarget=null;s.lastMove={from,to};return true;}
 function availableMoves(s){let sources=[];if(s.waste.length)sources.push('w');s.tableau.forEach((p,j)=>p.forEach((c,i)=>{if(c.up)sources.push(`t:${j}:${i}`);}));s.foundation.forEach((p,j)=>{if(p.length)sources.push(`f:${j}`);});let out=[];for(let from of sources)for(let kind of ['f','t'])for(let j=0;j<(kind==='f'?4:7);j++){let copy=clone(s);if(solitaireMove(copy,from,`${kind}:${j}`))out.push([from,`${kind}:${j}`]);}return out;}
-export const solitaire={id:'solitaire',title:'Solitaire',subtitle:'The familiar comfort of a fresh deal.',tag:'Classic · Draw one',rules:'Build the four foundations from Ace to King, by suit. On the seven columns, stack cards in descending order with alternating colours. Only a King can fill an empty column. Drag a face-up card or sequence to its destination, or tap the card then its destination. With a keyboard, Tab between buttons and press Enter or Space. Tap the stock to draw one card; recycle it when empty. Select a card and use Send to foundation for a quick legal foundation move. Larger cards in How to play offers a scrollable board. Random deals may be unwinnable.',create(){let deck=shuffle(range(52).map(i=>({rank:i%13+1,suit:i/13|0,up:false}))),tableau=[];for(let i=0;i<7;i++){tableau.push(deck.splice(0,i+1));tableau[i].at(-1).up=true;}return {tableau,stock:deck,waste:[],foundation:[[],[],[],[]],selected:null,message:''};},view(s){return `<div class="solitaire-scroll" tabindex="0" aria-label="Solitaire table${s.large?', larger cards. Scroll sideways to see all columns.':''}"><div class="solitaire-board ${s.large?'large-cards':''}"><div class="card-top"><div class="stock-pile">${s.stock.length?card(s.stock.at(-1),'stock','','stock-card'):button('<span class="recycle-mark">↻</span>','stock','','card-slot stock-empty',`aria-label="Recycle waste" ${s.waste.length?'':'disabled'}`)}<small>${s.stock.length?`${s.stock.length} cards`:'Recycle'}</small></div><div class="waste-pile">${s.waste.length?card(s.waste.at(-1),'select','w',s.selected==='w'?'selected':''):'<div class="card-slot waste-slot" aria-label="Waste pile empty"></div>'}<small>Draw one</small></div><div class="card-gap"></div>${s.foundation.map((p,i)=>`<div class="foundation-pile">${p.length?card(p.at(-1),'foundation',i,s.selected===`f:${i}`?'selected':s.hintTarget===`f:${i}`?'hinted':''):button(`<span>${suits[i]}</span><small>A</small>`,'foundation',i,`card-slot foundation-slot ${s.hintTarget===`f:${i}`?'hinted':''}`,`aria-label="${suits[i]} foundation, empty"`)}<small>${p.length===13?'Complete':'Ace to King'}</small></div>`).join('')}</div><div class="tableau">${s.tableau.map((p,j)=>`<div class="card-column ${s.hintTarget===`t:${j}`?'hinted':''}" style="--pile-count:${Math.max(0,p.length-1)}">${button('<span>K</span>','column',j,'card-slot',`aria-label="Column ${j+1}"`)}${p.map((c,i)=>`<div class="stack-card" style="--card-index:${i}">${card(c,'select',`t:${j}:${i}`,s.selected===`t:${j}:${i}`?'selected':'')}</div>`).join('')}</div>`).join('')}</div></div></div>`;},action(s,a,v){if(['stock','select','foundation','column'].includes(a))s.hintTarget=null;if(a==='zoom'){s.large=!s.large;return false;}if(a==='auto'){if(s.selected){for(let j=0;j<4;j++)if(solitaireMove(s,s.selected,`f:${j}`)){s.message='Moved to the foundation.';return true;}s.message='This card cannot go to a foundation yet.';}return false;}if(a==='stock'){if(s.stock.length){let c=s.stock.pop();c.up=true;s.waste.push(c);}else if(s.waste.length){s.stock=s.waste.reverse().map(c=>({...c,up:false}));s.waste=[];}else return false;s.selected=null;s.message='';return true;}if(a==='hint'){let moves=availableMoves(s);const pile=x=>x[0]==='t'?x.split(':').slice(0,2).join(':'):x;const ranked=moves.filter(([f,t])=>f[0]!=='f'&&!(s.lastMove&&pile(f)===s.lastMove.to&&t===pile(s.lastMove.from))).map(m=>{let [f,t]=m,o=origin(s,f),exposes=o.index>0&&!o.pile[o.index-1].up,empty=t[0]==='t'&&!s.tableau[+t.split(':')[1]].length;return {m,score:(exposes?200:0)+(t[0]==='f'?100:0)+(f==='w'?70:0)-(empty&&o.index===0?500:0)};}).filter(x=>x.score>=0).sort((a,b)=>b.score-a.score);let best=ranked[0]?.m;if(best){s.selected=best[0];s.hintTarget=best[1];s.message=`Selected card can move to ${best[1][0]==='f'?'the '+suits[+best[1].split(':')[1]]+' foundation':'column '+(+best[1].split(':')[1]+1)}.`;}else s.message=s.stock.length?'Draw a card from the stock.':s.waste.length?'Recycle the waste, or undo a move. This deal may be blocked.':'No available moves. Try Undo or a new deal.';return false;}if(a==='foundation'){if(s.selected&&solitaireMove(s,s.selected,`f:${v}`)){s.message='';return true;}if(s.foundation[+v].length)s.selected=`f:${v}`;else s.message='Foundations begin with an Ace of the matching suit.';return false;}if(a==='column'){if(s.selected&&solitaireMove(s,s.selected,`t:${v}`)){s.message='';return true;}s.message='Only a King can fill an empty column.';return false;}if(a==='select'){if(s.selected===v){s.selected=null;return false;}if(s.selected&&v[0]==='t'&&solitaireMove(s,s.selected,`t:${v.split(':')[1]}`)){s.message='';return true;}let o=origin(s,v);if(o?.pile&&o.index>=0&&o.index<o.pile.length&&sequence(o.pile.slice(o.index))){s.selected=v;s.message='Now tap a column or a foundation.';}else s.message='That card is face down.';}return false;},won:s=>s.foundation.every(p=>p.length===13)};
+export function solitaireTargets(s,from=s.selected){
+  if(!from)return [];
+  return ['f:0','f:1','f:2','f:3',...range(7).map(i=>`t:${i}`)].filter(to=>solitaireMove(clone(s),from,to));
+}
+function selectedMessage(s){
+  const targets=solitaireTargets(s);
+  return targets.length?'Choose an outlined destination. Tap the selected card again to cancel.':'No destination for this card yet. Tap it again to cancel, or draw from the stock.';
+}
+function failedSolitaireMove(s,to){
+  const o=origin(s,s.selected),cards=o?.pile?.slice(o.index),c=cards?.[0];
+  if(!c)return 'Choose a face-up card first.';
+  if(to[0]==='f')return cards.length>1?'Move one card at a time to a foundation. Your sequence is still selected.':'Foundations build Ace to King in the matching suit. Your card is still selected.';
+  return !s.tableau[+to.split(':')[1]]?.length?'Only a King can fill an empty column. Your card is still selected.':'Build down by one rank, alternating red and black. Your card is still selected.';
+}
+export const solitaire={
+  id:'solitaire',title:'Solitaire',subtitle:'The familiar comfort of a fresh deal.',tag:'Classic · Draw one',
+  rules:'Build the four foundations from Ace to King, by suit. On the seven columns, stack cards in descending order with alternating colours. Only a King can fill an empty column. Drag a face-up card or sequence to its destination, or select a card and tap an outlined destination. Tap the selected card again to cancel. With a keyboard, Tab between buttons and press Enter or Space. Tap the stock to draw one card; recycle it when empty. Select a card and use To foundation for a quick legal foundation move. Larger cards in How to play offers a scrollable board. Random deals may be unwinnable.',
+  create(){let deck=shuffle(range(52).map(i=>({rank:i%13+1,suit:i/13|0,up:false}))),tableau=[];for(let i=0;i<7;i++){tableau.push(deck.splice(0,i+1));tableau[i].at(-1).up=true;}return {tableau,stock:deck,waste:[],foundation:[[],[],[],[]],selected:null,message:''};},
+  view(s){const targets=new Set(solitaireTargets(s));return `<div class="solitaire-scroll" tabindex="0" aria-label="Solitaire table${s.large?', larger cards. Scroll sideways to see all columns.':''}"><div class="solitaire-board ${s.large?'large-cards':''}"><div class="card-top"><div class="stock-pile">${s.stock.length?card(s.stock.at(-1),'stock','','stock-card'):button('<span class="recycle-mark">↻</span>','stock','','card-slot stock-empty',`aria-label="Recycle waste" ${s.waste.length?'':'disabled'}`)}<small>${s.stock.length?`${s.stock.length} cards`:'Recycle'}</small></div><div class="waste-pile">${s.waste.length?card(s.waste.at(-1),'select','w',s.selected==='w'?'selected':''):'<div class="card-slot waste-slot" aria-label="Waste pile empty"></div>'}<small>Draw one</small></div><div class="card-gap"></div>${s.foundation.map((p,i)=>`<div class="foundation-pile ${targets.has(`f:${i}`)?'legal-destination':''}">${p.length?card(p.at(-1),'foundation',i,s.selected===`f:${i}`?'selected':s.hintTarget===`f:${i}`?'hinted':''):button(`<span>${suits[i]}</span><small>A</small>`,'foundation',i,`card-slot foundation-slot ${s.hintTarget===`f:${i}`?'hinted':''}`,`aria-label="${suits[i]} foundation, empty"`)}<small>${p.length===13?'Complete':'Ace to King'}</small></div>`).join('')}</div><div class="tableau">${s.tableau.map((p,j)=>`<div class="card-column ${s.hintTarget===`t:${j}`?'hinted':''} ${targets.has(`t:${j}`)?'legal-destination':''}" style="--pile-count:${Math.max(0,p.length-1)}">${button('<span>K</span>','column',j,'card-slot',`aria-label="Column ${j+1}${targets.has(`t:${j}`)?', available destination':''}"`)}${p.map((c,i)=>`<div class="stack-card" style="--card-index:${i}">${card(c,'select',`t:${j}:${i}`,s.selected===`t:${j}:${i}`?'selected':'')}</div>`).join('')}</div>`).join('')}</div></div></div>`;},
+  action(s,a,v){
+    if(['stock','select','foundation','column'].includes(a))s.hintTarget=null;
+    if(a==='zoom'){s.large=!s.large;return false;}
+    if(a==='auto'){
+      if(s.selected){for(let j=0;j<4;j++)if(solitaireMove(s,s.selected,`f:${j}`)){s.message='Moved to the foundation. Undo is available.';return true;}s.message='This card cannot go to a foundation yet. Your selection is unchanged.';}
+      return false;
+    }
+    if(a==='stock'){
+      if(s.stock.length){let c=s.stock.pop();c.up=true;s.waste.push(c);s.message=`Drew ${face(c)}. ${s.stock.length?`${s.stock.length} cards left in the stock.`:'The stock is empty. Tap it to recycle the waste.'}`;}
+      else if(s.waste.length){s.stock=s.waste.reverse().map(c=>({...c,up:false}));s.waste=[];s.message='Waste recycled. Tap the stock to draw again.';}
+      else return false;
+      s.selected=null;return true;
+    }
+    if(a==='hint'){
+      let moves=availableMoves(s);const pile=x=>x[0]==='t'?x.split(':').slice(0,2).join(':'):x;
+      const ranked=moves.filter(([f,t])=>f[0]!=='f'&&!(s.lastMove&&pile(f)===s.lastMove.to&&t===pile(s.lastMove.from))).map(m=>{let [f,t]=m,o=origin(s,f),exposes=o.index>0&&!o.pile[o.index-1].up,empty=t[0]==='t'&&!s.tableau[+t.split(':')[1]].length;return {m,score:(exposes?200:0)+(t[0]==='f'?100:0)+(f==='w'?70:0)-(empty&&o.index===0?500:0)};}).filter(x=>x.score>=0).sort((a,b)=>b.score-a.score);
+      let best=ranked[0]?.m;
+      if(best){s.selected=best[0];s.hintTarget=best[1];s.message=`Selected card can move to ${best[1][0]==='f'?'the '+suits[+best[1].split(':')[1]]+' foundation':'column '+(+best[1].split(':')[1]+1)}.`;}
+      else {s.selected=null;s.hintTarget=null;s.message=s.stock.length?'Draw a card from the stock.':s.waste.length?'Recycle the waste, or undo a move. This deal may be blocked.':'No available moves. Try Undo or a new deal.';}
+      return false;
+    }
+    if(a==='foundation'){
+      if(!Number.isInteger(+v)||+v<0||+v>3)return false;
+      if(s.selected===`f:${v}`){s.selected=null;s.message='Selection cleared.';return false;}
+      if(s.selected){if(solitaireMove(s,s.selected,`f:${v}`)){s.message='Moved to the foundation. Undo is available.';return true;}s.message=failedSolitaireMove(s,`f:${v}`);return false;}
+      if(s.foundation[+v].length){s.selected=`f:${v}`;s.message=selectedMessage(s);}else s.message='Foundations begin with an Ace of the matching suit.';
+      return false;
+    }
+    if(a==='column'){
+      if(!Number.isInteger(+v)||+v<0||+v>6)return false;
+      if(s.selected&&solitaireMove(s,s.selected,`t:${v}`)){s.message='Moved. Undo is available.';return true;}
+      s.message=failedSolitaireMove(s,`t:${v}`);return false;
+    }
+    if(a==='select'){
+      if(s.selected===v){s.selected=null;s.message='Selection cleared.';return false;}
+      if(s.selected&&/^t:[0-6]:\d+$/.test(v)&&s.selected.split(':').slice(0,2).join(':')!==v.split(':').slice(0,2).join(':')){
+        const to=`t:${v.split(':')[1]}`;
+        if(solitaireMove(s,s.selected,to)){s.message='Moved. Undo is available.';return true;}
+        s.message=failedSolitaireMove(s,to);return false;
+      }
+      let o=origin(s,v);
+      if(o?.pile&&o.index>=0&&o.index<o.pile.length&&sequence(o.pile.slice(o.index))){s.selected=v;s.message=selectedMessage(s);}else s.message='That card is face down. Uncover it by moving the cards below it.';
+    }
+    return false;
+  },
+  won:s=>s.foundation.every(p=>p.length===13)
+};
 // Replacement Mahjong section for classics.js; uses the existing button, range, shuffle imports.
 const mahjongSymbols=[
   ['☀','Sun'],['☾','Moon'],['★','Star'],['♥','Heart'],['♠','Spade'],['♣','Club'],
