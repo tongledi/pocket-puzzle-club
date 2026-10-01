@@ -1,16 +1,16 @@
-import {shuffle,button,range,grids} from './core.js?v=1.8.1';
+import {shuffle,button,range,grids} from './core.js?v=1.8.2';
 const slideWon=s=>s.cells.every((n,i)=>n===(i+1)%16);
 const near=(a,b)=>Math.abs(a%4-b%4)+Math.abs((a/4|0)-(b/4|0))===1;
 export const sliding={
   id:'sliding',title:'Sliding Tiles',subtitle:'One space. A little perspective.',tag:'Classic · 4 × 4',
   rules:'Slide a tile next to the empty space. Outlined tiles can move. Arrange 1–15 in order, with the empty space at the bottom right. Every new puzzle is scrambled using legal moves, so it can be solved. Arrow keys move the empty space. Hint takes one step back along the recorded path; it is not always the shortest route.',
   create(){let s={cells:range(16).map(i=>(i+1)%16),trail:[],message:''};let last=-1;for(let i=0;i<90;i++){let z=s.cells.indexOf(0),opts=range(16).filter(j=>near(j,z)&&j!==last),j=opts[Math.random()*opts.length|0];s.trail.push(z);[s.cells[z],s.cells[j]]=[s.cells[j],s.cells[z]];last=z;}return s;},
-  view(s){const z=s.cells.indexOf(0),placed=s.cells.filter((n,i)=>n&&n===i+1).length;return `<div class="puzzle-goal"><strong>Put 1–15 in order</strong><span>${placed} of 15 tiles in place · outlined tiles can move</span></div>`+grids(s.cells.map((n,i)=>button(n||'<span aria-hidden="true">·</span>','tile',i,`slide-tile ${n?'':'empty'} ${n&&near(i,z)?'movable':''} ${n===i+1?'in-place':''}`,`aria-label="${n?'Tile '+n+(near(i,z)?', can move':', not beside the space'):'Empty space'}, row ${(i/4|0)+1}, column ${i%4+1}" ${n?'':'disabled'}`)),4,'sliding-board');},
+  view(s){const z=s.cells.indexOf(0),placed=s.cells.filter((n,i)=>n&&n===i+1).length;return `<div class="puzzle-goal"><strong>Put 1–15 in order</strong><span>${placed} of 15 tiles in place · outlined tiles can move</span></div>`+grids(s.cells.map((n,i)=>button(n?`<span class="slide-face" aria-hidden="true">${n}</span>`:'<span aria-hidden="true">·</span>','tile',i,`slide-tile ${n?'':'empty'} ${n&&near(i,z)?'movable':''} ${n===i+1?'in-place':''}`,`aria-label="${n?'Tile '+n+(near(i,z)?', can move':', not beside the space'):'Empty space'}, row ${(i/4|0)+1}, column ${i%4+1}" ${n?'':'disabled'}`)),4,'sliding-board');},
   action(s,a,v){
     if(a==='hint'){if(s.trail.length){v=s.trail.pop();let z=s.cells.indexOf(0),n=s.cells[v];[s.cells[z],s.cells[v]]=[s.cells[v],s.cells[z]];s.message=`Tile ${n} moved one step along the saved route. This route may take extra moves.`;return true;}return false;}
     if(a==='tile'){let z=s.cells.indexOf(0),i=v==null||v===''?NaN:+v;if(Number.isInteger(i)&&i>=0&&i<16&&s.cells[i]&&near(i,z)){const n=s.cells[i];if(s.trail.at(-1)===i)s.trail.pop();else s.trail.push(z);[s.cells[z],s.cells[i]]=[s.cells[i],s.cells[z]];s.message=`Tile ${n} moved ${i%4>z%4?'left':i%4<z%4?'right':i>z?'up':'down'}.`;return true;}s.message='Choose an outlined tile beside the empty space.';}return false;
   },
-  motion(before,a,v,after){if(!after||!['tile','hint'].includes(a))return null;const to=before.cells.indexOf(0),from=after.cells.indexOf(0);return {game:'sliding',targets:[{selector:`[data-action="tile"][data-value="${to}"]`,fromSelector:`[data-action="tile"][data-value="${from}"]`,kind:'slide'}]};},
+  motion(before,a,v,after){if(!after||!['tile','hint'].includes(a))return null;const to=before.cells.indexOf(0),from=after.cells.indexOf(0);return {game:'sliding',targets:[{selector:`[data-action="tile"][data-value="${to}"] .slide-face`,fromSelector:`[data-action="tile"][data-value="${from}"]`,kind:'slide'}]};},
   won:slideWon
 };
 const dirs=[[0,-1,'↑'],[1,0,'→'],[0,1,'↓'],[-1,0,'←']];
