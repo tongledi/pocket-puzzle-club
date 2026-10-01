@@ -341,3 +341,15 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 .solitaire-room .board-wrap.is-won .table-result{flex:0 1 490px;margin:0!important;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
 .deal-dialog .deal-choices{grid-template-columns:minmax(0,1fr);justify-content:stretch;width:100%}
 @media(max-width:700px){.solitaire-room .board-wrap.is-won{padding:10px}.solitaire-room .board-wrap.is-won .table-result{padding:18px 16px}.table-result .win-suits{margin-bottom:10px}.table-result .result-stats{margin-bottom:15px}.table-result .table-kicker{margin-bottom:9px}}
+
+/* Starter levels: one compact identity control, a clear next action at a win. */
+.game-toolbar .level-chip,.deal-strip .level-chip{min-height:32px;padding:5px 10px;border:1px solid #b7bb91;border-radius:7px;background:#e9edd8;color:#3c593f;font-size:12px;white-space:nowrap}
+.deal-strip .level-chip{color:#f3e5bc;background:#2c5140;border-color:#dfc88f55}
+.level-extras{display:flex!important;justify-content:center!important;gap:8px;margin:10px 0 13px}.level-extras button{font-size:12px;flex:1;padding:8px;min-height:42px}
+.deal-choice:disabled{opacity:.62;background:#ebe9df}.deal-choice:disabled strong span{font-size:12px}.deal-dialog .deal-choices{grid-template-columns:minmax(0,1fr)}
+.club-room .result-board{min-height:330px;box-shadow:none;display:flex;justify-content:center;align-items:center}
+.puzzle-result{width:100%;max-width:430px;margin:auto;padding:22px 14px;text-align:center}.puzzle-result h2{font:400 32px/1.15 Georgia,serif;color:#2b4b37;margin:0 0 13px}.puzzle-result>p{font-size:14px;line-height:1.6;color:#69775c;margin:0 0 20px}.puzzle-result .win-suits{font-size:38px;color:#6d8856;margin-bottom:18px}.puzzle-result .result-stats{color:#69775c;font-size:12px;margin-bottom:26px}.puzzle-result .result-stats b{color:#38543c;font-size:25px}.puzzle-result .menu-primary{width:100%;font-size:18px;min-height:51px}.puzzle-result .result-replay{color:#69805b}.result-announcement{min-height:0!important;margin:0!important}
+@media(max-width:700px){.game-toolbar .level-chip{font-size:11px;min-height:32px;padding:5px 8px}.club-room .run-stats{gap:11px}.club-room .result-board{min-height:300px}.puzzle-result{padding:18px 8px}.puzzle-result h2{font-size:29px}.puzzle-result .result-stats{gap:22px}.level-extras button{font-size:11px}.deal-strip .level-chip{font-size:11px}.deal-dialog .deal-choice{min-height:66px}}
+
+.solitaire-room .auto-card-ghost:disabled{opacity:1;pointer-events:none;will-change:transform}.solitaire-room .auto-card-ghost{transition:none}
+.result-stats{flex-wrap:wrap}.table-result .result-stats{gap:14px 20px}
