@@ -1,10 +1,10 @@
-import { commitDrag, installDragControls } from './drag.js?v=1.11.0';
-import {games as classics} from './games/classics.js?v=1.11.0';
-import {games as modern} from './games/modern.js?v=1.11.0';
-import {games as logic} from './games/logic.js?v=1.11.0';
-import {clone,button} from './games/core.js?v=1.11.0';
+import { commitDrag, installDragControls } from './drag.js?v=1.11.1';
+import {games as classics} from './games/classics.js?v=1.11.1';
+import {games as modern} from './games/modern.js?v=1.11.1';
+import {games as logic} from './games/logic.js?v=1.11.1';
+import {clone,button} from './games/core.js?v=1.11.1';
 const games=[...classics,...modern,...logic],byId=Object.fromEntries(games.map(g=>[g.id,g]));
-const app=document.querySelector('#app'),VERSION='1.11.0',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
+const app=document.querySelector('#app'),VERSION='1.11.1',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
 let storageOK=true,saves={},recent=[],bestScores={},current=null,paused=false,confirmAction=null,notice='',rulesState={},lastTick=performance.now();
 let dragControls=null,helpOpen=false,settingsOpen=false,editingFavorites=false;
 let dealPickerOpen=false,pendingDeal=null,autoFinishPresentation=null;
@@ -247,7 +247,7 @@ function cardPositions(){
   return positions;
 }
 function animateTable(previous,deal=false){
-  if(current!=='solitaire'||paused||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(current!=='solitaire'||paused||autoFinishPresentation||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const cards=[...app.querySelectorAll('.solitaire [data-card-id]')];
   if(!cards[0]?.animate)return;
   const stock=app.querySelector('.stock-pile')?.getBoundingClientRect();
