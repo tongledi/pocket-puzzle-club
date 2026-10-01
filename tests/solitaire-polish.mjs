@@ -90,7 +90,7 @@ test('all eight routes and decorative menu covers preserve the Solitaire board',
     assert.equal(t.ctx.inspect().current, id);
     assert.ok(t.app.innerHTML.includes('aria-label="' + [...classics, ...modern, ...logic].find(g => g.id === id).title + ' game"'));
   }
-  assert.equal(Object.keys(readSave(t).saves).length, 8);
+  assert.equal(Object.keys(t.ctx.inspect().saves).length,8);for(const id of gameIds){const slot=id==='blocks'?readSave(t).saves[id]:JSON.parse(t.store.get(QA_KEY+'-starter-round-v1:'+id)).saves[id];assert.equal(slot.runId,t.ctx.inspect().saves[id].runId);}
 });
 
 test('stock, exact Undo, reload and schema-1 QA isolation remain unchanged', () => {
@@ -298,8 +298,8 @@ test('winning uses legal controller actions, stops time and supports confirmed r
   assert.equal(solitaire.won(round(t).state), true); assert.equal(round(t).finished, true);
   assert.equal(round(t).moves, 1); assert.equal(round(t).history.length, 1);
   assert.match(t.app.innerHTML, /class="table-result"/);
-  assert.match(t.app.innerHTML, /data-action="restart"[^>]*>Replay this deal/);
-  assert.match(t.app.innerHTML, /data-action="deals"[^>]*>Choose another deal/);
+  assert.match(t.app.innerHTML, /data-action="next-level"[^>]*>Next level/);
+  assert.match(t.app.innerHTML, /data-action="levels"[^>]*>Choose a level/);
   const completed = JSON.stringify(round(t).state), time = round(t).activeMs;
   t.advance(20000); t.tick(); t.ctx.handle('stock');
   assert.equal(round(t).activeMs, time); assert.equal(JSON.stringify(round(t).state), completed);

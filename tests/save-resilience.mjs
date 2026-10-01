@@ -20,7 +20,7 @@ function boot({store=new Map(),hash='',search='',denyBackup=false}={}){
 }
 const saved=t=>JSON.parse(t.store.get(KEY));
 const backups=store=>[...store.entries()].filter(([k])=>k.startsWith(KEY+'-recovery-')).map(([,v])=>JSON.parse(v));
-const open=(t,id)=>t.ctx.handle('open',id);
+const open=(t,id)=>{t.ctx.handle('open',id);if(t.ctx.inspect().saves[id]?.packId){t.ctx.handle('new');t.ctx.handle('confirm');}};
 const firstMove=(t,id)=>{
   const r=t.ctx.inspect().saves[id];
   if(id==='solitaire')t.ctx.handle('stock');

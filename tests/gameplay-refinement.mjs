@@ -54,7 +54,7 @@ test('Repeated Place dispatch cannot place the next block after a clear; Undo ke
 });
 test('Round end stops board and hints, Undo reopens it, replay restores original board',()=>{
  const t=boot(),s=block();s.cells=s.cells.map((_,i)=>(i%8+Math.floor(i/8))%2);s.pieces=[[[0,0]],[[0,0],[1,0]],[[0,0],[1,0]]];const r=setRound(t,s);t.ctx.handle('preview',0);t.ctx.handle('place',0);
- assert(r.finished);assert(blockOver(r.state));assert.match(t.app.innerHTML,/Replay this board/);const finished=JSON.stringify(r.state),hints=r.hints,time=r.activeMs;t.advance(9000);t.tick();for(const a of ['hint','piece','preview','place'])t.ctx.handle(a,1);assert.equal(JSON.stringify(r.state),finished);assert.equal(r.hints,hints);assert.equal(r.activeMs,time);
+ assert(r.finished);assert(blockOver(r.state));assert.match(t.app.innerHTML,/Play again/);const finished=JSON.stringify(r.state),hints=r.hints,time=r.activeMs;t.advance(9000);t.tick();for(const a of ['hint','piece','preview','place'])t.ctx.handle(a,1);assert.equal(JSON.stringify(r.state),finished);assert.equal(r.hints,hints);assert.equal(r.activeMs,time);
  t.ctx.handle('restart');t.ctx.handle('cancel');assert.equal(JSON.stringify(r.state),finished);t.ctx.handle('undo');assert(!r.finished);assert(!blockOver(r.state));t.ctx.handle('restart');t.ctx.handle('confirm');assert.equal(JSON.stringify(round(t).state),JSON.stringify(s));assert.equal(round(t).moves,0);assert.equal(round(t).history.length,0);
 });
 test('Pending block previews survive modal cancel, navigation and reload, with input gated',()=>{

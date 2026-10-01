@@ -228,7 +228,7 @@ test('all eight settings and help dialogs block board actions and exclude time u
     modalMarkup(t, overlay + '-title');
     assert.equal(state(t).activeMs, 1000, id + ' records play before the dialog');
     const before = stringify(state(t)); t.advance(9000);
-    for (const action of ['hint', 'undo', 'stock', 'restart', 'tile', 'number', 'place', 'arrow', 'tube', 'letter']) t.ctx.handle(action, 0);
+    for (const action of ['hint', 'undo', 'stock', ...(overlay==='help'?['restart']:[]), 'tile', 'number', 'place', 'arrow', 'tube', 'letter']) t.ctx.handle(action, 0);
     assert.equal(stringify(state(t)), before, id + '/' + overlay + ' blocks board and counter changes');
     assert.equal(t.ctx.inspect().confirmAction, null);
     t.tick(); assert.equal(state(t).activeMs, 1000, id + ' stays paused across timer ticks');
@@ -239,6 +239,8 @@ test('all eight settings and help dialogs block board actions and exclude time u
     t.advance(1000); t.tick(); assert.equal(state(t).activeMs, 2000, id + ' counts only active play');
   }
 });
+
+test('Settings Replay asks for confirmation before replacing an attempt',()=>{const t=boot();open(t,'water');const before=stringify(state(t));t.ctx.handle('settings');t.ctx.handle('restart');assert.equal(t.ctx.inspect().confirmAction,'restart');assert.equal(stringify(state(t)),before);t.ctx.handle('cancel');assert.equal(stringify(state(t)),before);});
 
 test('help is requested per game, with accessible text kept out of the playing surface', () => {
   for (const g of games) {
