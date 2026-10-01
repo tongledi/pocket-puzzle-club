@@ -1,6 +1,6 @@
-import { solitaireMove } from './games/classics.js?v=1.11.2';
-import { blocks, canPlace, blockPlacement } from './games/modern.js?v=1.11.2';
-import { words, wordLine } from './games/logic.js?v=1.11.2';
+import { solitaireMove } from './games/classics.js?v=1.11.3';
+import { blocks, canPlace, blockPlacement } from './games/modern.js?v=1.11.3';
+import { words, wordLine } from './games/logic.js?v=1.11.3';
 
 // UI gestures stay transient. Only this controller action changes a round.
 // Call AFTER the controller's storage/dialog/pause/win guards and BEFORE its
