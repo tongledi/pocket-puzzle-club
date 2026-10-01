@@ -204,3 +204,15 @@ The two-row Water board now allocates 16 fewer pixels of glass height per row at
 - Independent screenshot review accepted the final narrow Mahjong, Arrows and Water layouts. Browser zoom and desktop size were restored afterward
 - Final aggregate `npm test` passed, including 14 matching-puzzle suites and the previous full regression set. The Water solver also passed an independent 300-state exhaustive-BFS comparison; search depth is capped at 128 and reports inconclusive when any search budget is hit
 - Every destructive/new-round browser interaction used `?qa=1` and its isolated save namespace. Normal saves were not reset. No OS installation was attempted; physical touch-device and assistive-technology testing remain outstanding
+
+## Logic puzzle refinement 1.8.0 — Sliding Tiles, Word Search and Sudoku
+
+- Sliding Tiles marks the legal neighboring tiles, reports the direction of each move and briefly slides the moved tile into the empty space. Its recorded-route hint is explicitly valid but not necessarily shortest
+- Word Search supports live straight-line pointer selection in all eight directions, plus the existing two-endpoint tap/keyboard fallback. The line and selected letters remain transient until a valid release. Invalid, outside, cancelled, interrupted or stale drags do not change the saved board; a release cannot also become a second tap
+- Word Search displays compact six-word progress chips, clear found marks and contextual first-letter hints. Tapping the chosen start again cancels endpoint selection
+- Sudoku keeps selection, fixed clues, number/pencil mode and duplicate warnings legible. Pencil notes show their keypad toggle state; Erase sits beside Pencil; the nine-number keypad remains in one row. Arrow keys move between cells without row wrapping, N changes pencil mode and browser modifier shortcuts are left alone
+- Duplicate conflicts use a symbol and accessible invalid-state label as well as color. A non-conflicting answer is not described as correct. Generation, unique-solution checks, hint behavior and exact note restoration through Undo remain unchanged
+- The approved eight-game lobby, other five games, install entry and schema-1 save/reconciliation guards remain intact. No difficulty claims, currency, ads, account system or tracking were added
+- Added 19 focused rule/controller/synthetic-pointer suites covering eight-direction selection, tap/drag equivalence, both endpoint orders, stale/duplicate/cancelled gestures, touch thresholds, ghost-click suppression, keyboard modifiers, overlays, Undo, reload and reduced-motion guards
+
+The full automated suite passes on the release source. Browser visual and interaction verification is recorded separately below; simulated pointer tests do not establish real phone touch or assistive-technology usability.
