@@ -39,7 +39,7 @@ test('Every arrow direction uses first-blocker geometry; failures and exits both
 });
 test('Water commits once before lift/tilt/stream, gates repeated taps and never saves motion',()=>{
  const t=boot(),r=t.room('water'),[a,b]=r.state.path[0];t.ctx.handle('tube',a);const before=JSON.stringify(r.state.tubes);t.ctx.handle('tube',b);assert.equal(r.moves,1);assert.notEqual(JSON.stringify(r.state.tubes),before);assert(t.ctx.inspect().puzzleMotion);const after=JSON.stringify(r.state);t.ctx.handle('tube',a);t.ctx.handle('hint');assert.equal(JSON.stringify(r.state),after);assert.equal(r.moves,1);
- assert(t.animations.some(a=>a.frames.some(f=>/rotate\(-?65deg\)/.test(f.transform||''))));assert(t.animations.some(a=>a.el.className==='water-stream'));assert(t.animations.filter(a=>a.frames.some(f=>f.transform==='scaleY(0)')).length>=3);
+ assert.equal(t.animations[0].options.easing,'linear');assert(t.animations.some(a=>a.frames.some(f=>/rotate\(-?65deg\)/.test(f.transform||''))));assert(t.animations.some(a=>a.el.className==='water-stream'));assert(t.animations.filter(a=>a.frames.some(f=>f.transform==='scaleY(0)')).length>=3);
  assert.doesNotMatch(t.store.get('pocket-puzzle-qa-v1'),/water-flying|water-stream|water-pour|puzzleMotion/);t.ctx.cancelPuzzleMotion();assert.equal(t.ctx.inspect().puzzleMotion,null);assert(t.animations.every(a=>a.canceled));assert.equal(JSON.stringify(r.state),after);
 });
 test('Water Undo during flight restores exact pre-move state and removes all overlays',()=>{
