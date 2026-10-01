@@ -158,3 +158,6 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 @media(prefers-reduced-motion:reduce){.scene-enter{animation:none}.menu-field .game-card,.menu-field .game-card .cover-art{transition:none}.menu-field .game-card:hover,.menu-field .game-card:hover .cover-art{transform:none}}
 @media(max-width:820px){.table-header .table-top-actions{width:auto;border:0;padding:0;margin-left:auto;flex-shrink:0;justify-content:flex-end}}
 @media(max-width:700px){.menu-scene{--menu-reserve:240px}.menu-scene:has(.menu-resume){--menu-reserve:294px}.menu-field .game-card{height:clamp(100px,calc((100svh - var(--menu-reserve) - env(safe-area-inset-top) - env(safe-area-inset-bottom))/4),151px)}}
+/* Large browser zoom keeps the whole menu reachable without horizontal spill. */
+.menu-scene{grid-template-columns:minmax(0,1fr)}.menu-header,.menu-bottom{min-width:0}.menu-dock button{min-width:0}
+@media(max-width:320px){.menu-dock button{flex-direction:column;gap:5px;font-size:14px}.menu-header{grid-template-columns:46px minmax(0,1fr) 46px;gap:5px}.menu-header h1{font-size:23px}.menu-header h1 em{font-size:12px;letter-spacing:1.5px}.menu-resume span{font-size:15px}.menu-game-name{font-size:17px}}
