@@ -1,4 +1,4 @@
-# Pocket Puzzle Club — project preview 1.4
+# Pocket Puzzle Club — mobile game menu 1.5
 
 English-first, mobile-responsive casual puzzle collection. Working title only; no trademark clearance or domain purchase. Static original DOM/CSS implementations with separate pure rule modules and a shared controller. No packages, account system, ads, purchases, live AI, remote fonts, tracking SDKs or external analytics calls. Solitaire sound is optional and off by default; all other games are silent. This checkout is hosting-independent.
 
@@ -94,3 +94,27 @@ Source and VM tests verify logic, not physical-device touch or screen-reader usa
 - Narrow Mahjong pause/resume and New game cancellation preserve the board
 - Tests used `?qa=1`, preserving normal player saves; viewport and zoom restored afterward
 - These checks do not establish physical touch-device or screen-reader usability
+
+
+## Mobile game menu release 1.5.1
+
+- A single felt game-home scene with eight large visual entrances and short integrated names
+- Games/Favourites dock, real unfinished-round Continue, and full-tile Edit/Done favourite selection
+- Shared tactile room header and settings/help overlays; gameplay rules and schema-1 saves retained
+- Overlays stop active time, gate board/drag/keyboard actions, use an inert background, trap Tab and restore focus
+- Entry/return motion is limited to navigation; cross-tab or timer reconciliation never replays it
+- Safe-area padding, fluid height, large controls, reduced-motion support and graceful short-screen/large-zoom scrolling
+- 21 clubhouse controller/markup suites plus the full existing game/save/drag/lifecycle regression suite pass
+
+### Live browser verification — 2026-10-01
+
+- Public GitHub Pages runtime inspected in cloud Chromium, using only the isolated `?qa=1` save namespace
+- At 400×743 CSS pixels, all eight entrances, real Continue and dock fit without horizontal or vertical page overflow
+- At 388×665 CSS pixels, the menu keeps readable controls and falls back to 15px of vertical scrolling
+- Independent screenshot review accepted the narrow game-menu composition
+- All eight narrow entry/back routes and collection context checked; settings controls remain inside the viewport
+- Favourite Edit/Done selection, reload persistence, removal and empty collection checked through the UI
+- Water Sort legal move, reload persistence, exact Undo and cancelled New game preserve the round
+- Water Sort settings/help timer freeze, Escape, restored focus and inert background checked through the UI
+- Desktop four-column composition visually checked; browser zoom/size restored after testing
+- Browser DevTools are organization-disabled, so these are resized/zoomed browser checks, not device emulation or physical-phone/touch/screen-reader verification
