@@ -1,10 +1,10 @@
-import { commitDrag, installDragControls } from './drag.js?v=1.9.0';
-import {games as classics} from './games/classics.js?v=1.9.0';
-import {games as modern} from './games/modern.js?v=1.9.0';
-import {games as logic} from './games/logic.js?v=1.9.0';
-import {clone,button} from './games/core.js?v=1.9.0';
+import { commitDrag, installDragControls } from './drag.js?v=1.9.1';
+import {games as classics} from './games/classics.js?v=1.9.1';
+import {games as modern} from './games/modern.js?v=1.9.1';
+import {games as logic} from './games/logic.js?v=1.9.1';
+import {clone,button} from './games/core.js?v=1.9.1';
 const games=[...classics,...modern,...logic],byId=Object.fromEntries(games.map(g=>[g.id,g]));
-const app=document.querySelector('#app'),VERSION='1.9.0',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
+const app=document.querySelector('#app'),VERSION='1.9.1',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
 let storageOK=true,saves={},recent=[],bestScores={},current=null,paused=false,confirmAction=null,notice='',rulesState={},lastTick=performance.now();
 let dragControls=null,helpOpen=false,settingsOpen=false,editingFavorites=false;
 let lobbyView=location.hash==='#favorites'?'favorites':'all',lobbyFilter='all',lobbyScroll=0,favoriteWarning='';
@@ -254,9 +254,9 @@ function animateWaterPour(plan){
   try{
     const ghost=scene.add(plan.ghost);ghost.classList.add('water-flying');ghost.setAttribute('aria-hidden','true');
     Object.assign(ghost.style,{position:'absolute',left:`${from.left-b.left}px`,top:`${from.top-b.top}px`,width:`${from.width}px`,height:`${from.height}px`,margin:'0',transformOrigin:'50% 0%'});scene.hide(source);
-    const tx=to.left+to.width/2-from.left-from.width/2,ty=to.top-30-from.top,sign=to.left+to.width/2>=b.left+b.width/2?1:-1,tilt=`translate(${tx}px,${ty}px) rotate(${sign*65}deg)`,duration=1100;
+    const sign=to.left+to.width/2>=b.left+b.width/2?1:-1,lipX=sign*from.width/2*Math.cos(65*Math.PI/180),lipY=from.width/2*Math.sin(65*Math.PI/180),tx=to.left+to.width/2-from.left-from.width/2-lipX,ty=to.top-22-from.top-lipY,tilt=`translate(${tx}px,${ty}px) rotate(${sign*65}deg)`,duration=1100;
     const main=scene.play(ghost,[{transform:'translate(0,0) rotate(0)',offset:0},{transform:'translate(0,-25px) rotate(0)',offset:.18},{transform:tilt,offset:.38},{transform:tilt,offset:.72},{transform:'translate(0,-25px) rotate(0)',offset:.9},{transform:'translate(0,0) rotate(0)',offset:1}],{duration,easing:'ease-in-out'});
-    const stream=scene.add(document.createElement('span'));stream.className='water-stream';stream.setAttribute('aria-hidden','true');Object.assign(stream.style,{left:`${to.left+to.width/2-b.left-3}px`,top:`${to.top-b.top-29}px`,height:'36px',background:plan.colorValue});
+    const stream=scene.add(document.createElement('span'));stream.className='water-stream';stream.setAttribute('aria-hidden','true');Object.assign(stream.style,{left:`${to.left+to.width/2-b.left-3}px`,top:`${to.top-b.top-23}px`,height:'30px',background:plan.colorValue});
     scene.play(stream,[{opacity:0,transform:'scaleY(0)',offset:0},{opacity:0,transform:'scaleY(0)',offset:.36},{opacity:1,transform:'scaleY(1)',offset:.41},{opacity:1,transform:'scaleY(1)',offset:.68},{opacity:0,transform:'scaleY(0)',offset:.74},{opacity:0,transform:'scaleY(0)',offset:1}],{duration,easing:'linear'});
     const drops=[...ghost.querySelectorAll('.drop')],filled=[...dest.querySelectorAll('.drop')];
     for(let n=0;n<plan.count;n++){
@@ -275,10 +275,10 @@ function animateArrowTravel(plan){
     const ghost=scene.add(document.createElement('span'));ghost.className='arrow-flying';ghost.textContent=plan.glyph;ghost.setAttribute('aria-hidden','true');Object.assign(ghost.style,{left:`${from.left-b.left}px`,top:`${from.top-b.top}px`,width:`${from.width}px`,height:`${from.height}px`});
     const face=cell.querySelector('span');if(face)scene.hide(face);
     let distance;
-    if(plan.blocker!=null){const blocker=app.querySelector(`[data-action="arrow"][data-value="${plan.blocker}"]`),r=blocker.getBoundingClientRect();distance=Math.max(3,Math.abs(plan.dx?r.left-from.left:r.top-from.top)-(plan.dx?from.width:from.height)*.72);}
+    if(plan.blocker!=null){const blocker=app.querySelector(`[data-action="arrow"][data-value="${plan.blocker}"]`),r=(blocker.querySelector('span')||blocker).getBoundingClientRect(),f=(face||cell).getBoundingClientRect();distance=Math.max(2,Math.abs(plan.dx?(r.left+r.width/2)-(f.left+f.width/2):(r.top+r.height/2)-(f.top+f.height/2))-(plan.dx?r.width+f.width:r.height+f.height)/2+1);}
     else distance=plan.dx>0?b.right-from.left+from.width:plan.dx<0?from.right-b.left+from.width:plan.dy>0?b.bottom-from.top+from.height:from.bottom-b.top+from.height;
     const travel=`translate(${plan.dx*distance}px,${plan.dy*distance}px)`,recoil=`translate(${plan.dx*Math.max(0,distance-8)}px,${plan.dy*Math.max(0,distance-8)}px)`,blocked=plan.blocker!=null;
-    const frames=blocked?[{transform:'translate(0,0)',offset:0},{transform:travel,offset:.43},{transform:recoil,offset:.54},{transform:travel,offset:.62},{transform:'translate(0,0)',offset:1}]:[{transform:'translate(0,0)',opacity:1,offset:0},{transform:travel,opacity:1,offset:.92},{transform:travel,opacity:0,offset:1}];
+    const frames=blocked?[{transform:'translate(0,0)',offset:0},{transform:travel,offset:.43},{transform:travel+(plan.dx?' scaleX(.75)':' scaleY(.75)'),offset:.5},{transform:recoil,offset:.64},{transform:'translate(0,0)',offset:1}]:[{transform:'translate(0,0)',opacity:1,offset:0},{transform:travel,opacity:1,offset:.92},{transform:travel,opacity:0,offset:1}];
     const main=scene.play(ghost,frames,{duration:blocked?650:500,easing:blocked?'ease-in-out':'cubic-bezier(.3,.1,.7,1)'});main.onfinish=scene.finish;main.oncancel=scene.finish;
   }catch{scene.finish();}
 }
