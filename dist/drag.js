@@ -1,5 +1,5 @@
-import { solitaireMove } from './games/classics.js?v=1.2.0';
-import { blocks, canPlace } from './games/modern.js?v=1.2.0';
+import { solitaireMove } from './games/classics.js?v=1.3.0';
+import { blocks, canPlace } from './games/modern.js?v=1.3.0';
 
 // UI gestures stay transient. Only this controller action changes a round.
 // Call AFTER the controller's storage/dialog/pause/win guards and BEFORE its
@@ -55,7 +55,7 @@ export function installDragControls({ root, getContext, dispatch }) {
   const win = doc?.defaultView || globalThis.window;
   const noop = { cancel() {}, destroy() {} };
   if (!win?.PointerEvent || !root.addEventListener || !doc?.addEventListener) return noop;
-  let drag = null, suppressClick = false;
+  let drag = null, suppressClick = false, dropPositions = null;
   const listeners = [];
   function listen(target, type, fn, options) {
     target.addEventListener(type, fn, options);
@@ -153,14 +153,17 @@ export function installDragControls({ root, getContext, dispatch }) {
       const box = d.el.getBoundingClientRect();
       d.offsetX = d.startX - box.left; d.offsetY = d.startY - box.top;
       ghost.style.width = `${box.width}px`; ghost.style.height = `${box.height}px`;
-      const card = d.el.cloneNode(true);
-      card.removeAttribute('data-action'); card.removeAttribute('data-value');
-      card.removeAttribute('id'); card.tabIndex = -1;
-      card.classList.remove('selected', 'hinted', 'drag-source');
-      card.classList.add('drag-card-face');
-      ghost.append(card);
-      const count = solitaireCards(d.state, d.from).length;
-      if (count > 1) { const badge = doc.createElement('span'); badge.className = 'drag-count'; badge.textContent = `${count} cards`; ghost.append(badge); }
+      ghost.classList.add('solitaire-ghost');
+      // Lift the actual visible run, preserving its offsets and readable ranks.
+      for (const source of d.sources) {
+        const sourceBox = source.getBoundingClientRect(), card = source.cloneNode(true);
+        for (const name of ['data-action','data-value','data-card-id','id']) card.removeAttribute(name);
+        card.tabIndex = -1;
+        card.classList.remove('selected', 'hinted', 'drag-source');
+        card.classList.add('drag-card-face');
+        Object.assign(card.style, { top: `${sourceBox.top-box.top}px`, left:'0', width:'100%', height:`${sourceBox.height}px` });
+        ghost.append(card);
+      }
     } else {
       // Use board-cell scale and preserve the exact point within the grabbed
       // square. The outline stays transparent so landing cells remain visible.
@@ -242,6 +245,13 @@ export function installDragControls({ root, getContext, dispatch }) {
     if (!currentMatches(d) || d.el.isConnected === false) { cancel(); return; }
     update(d, event);
     const drop = d.target;
+    if (drop && d.gameId === 'solitaire') {
+      const dx = event.clientX - d.startX, dy = event.clientY - d.startY;
+      dropPositions = new Map(d.sources.filter(el=>el.dataset.cardId).map(el=>{
+        const box=el.getBoundingClientRect();
+        return [el.dataset.cardId,{box:{left:box.left+dx,top:box.top+dy},face:el.dataset.face}];
+      }));
+    }
     finish(drop ? null : 'That drop does not fit. Your board is unchanged.');
     if (drop) dispatch('drag', { gameId: d.gameId, runId: d.runId, expected: d.expected,
       ...(d.gameId === 'solitaire' ? { from: d.from } : { piece: d.piece }), ...drop });
@@ -264,5 +274,5 @@ export function installDragControls({ root, getContext, dispatch }) {
   listen(win, 'blur', cancel);
   listen(win, 'pagehide', cancel);
   listen(win, 'resize', cancel);
-  return { cancel, destroy() { finish(); listeners.forEach(remove => remove()); } };
+  return { cancel, takeDropPositions() { const positions=dropPositions;dropPositions=null;return positions; }, destroy() { finish(); listeners.forEach(remove => remove()); } };
 }
