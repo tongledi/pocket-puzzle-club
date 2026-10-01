@@ -321,3 +321,15 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 @media(prefers-reduced-motion:reduce){.water-flying,.water-stream,.arrow-flying{display:none}}
 
 .depth-board .mahjong-tile.covered .mahjong-glyph,.depth-board .mahjong-tile.covered .mahjong-name{visibility:hidden}
+
+/* 2.0: tightly packed portrait tiles, using one uniform scale for all axes. */
+.club-room .mahjong-board.depth-board{height:auto;aspect-ratio:var(--board-aspect);width:min(100%,calc((100svh - 345px)*var(--board-aspect)));min-width:min(250px,100%);max-width:450px;border-radius:12px}
+.depth-board .mahjong-tile{border-radius:4px;box-shadow:1px 1px 0 #e0d8b7,1px 2px 0 #aaa780,2px 3px 0 #679077,2px 4px 0 #315c49,3px 5px 3px #16382d75,inset 1px 1px 1px #fff}
+.depth-board .mahjong-tile.raised{box-shadow:1px 1px 0 #e7dfbd,1px 2px 0 #b6b28d,2px 3px 0 #719680,2px 4px 0 #3c6954,3px 6px 3px #12372d99}
+.depth-board .mahjong-glyph{font-size:clamp(22px,4.8vw,30px);line-height:1.2}.depth-board .mahjong-name{font-size:clamp(8px,1.8vw,10px);line-height:1.5}
+.arrow-board .arrow-flying{background:#fffef5;border-radius:8px;opacity:1;box-shadow:0 2px 2px #233e3218;min-height:0;padding:0;line-height:normal}
+.arrow-board .arrow-flying:disabled{opacity:1}.arrow-flying>span{pointer-events:none}
+.deal-strip{position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px max(24px,calc((100vw - 1050px)/2));gap:10px;flex-shrink:0;font-size:11px;color:#b9cdbd;border-bottom:1px solid #e7cf9f15}
+.deal-strip .deal-chip{min-height:32px;padding:5px 11px;color:#f3e5bc;background:#2c5140;border:1px solid #dfc88f55;border-radius:6px;font-size:12px}
+.deal-dialog{width:min(100%,450px)}.deal-dialog .deal-choices{display:grid;gap:9px}.deal-choice{text-align:left;padding:12px 14px;border-radius:10px;min-height:66px;background:#fffaf0}.deal-choice strong{display:flex;justify-content:space-between;gap:12px;font-size:17px}.deal-choice strong span{font-weight:500;color:#5c704f}.deal-choice small{display:block;font-size:12px;color:#657358;margin-top:7px}.deal-choice.current-deal{border-color:#668260;box-shadow:inset 0 0 0 1px #668260}.deal-dialog .deal-rating-note{font-size:12px;line-height:1.5;margin:13px 0;color:#6b725f}.deal-dialog .menu-primary{width:100%}
+@media(max-width:700px){.club-room .mahjong-board.depth-board{width:min(100%,calc((100svh - 320px)*var(--board-aspect)));min-width:min(245px,100%)}.deal-strip{padding:4px 15px;gap:6px}.deal-strip>span{font-size:9px}.deal-strip .deal-chip{font-size:11px;padding:5px 8px}.deal-dialog .deal-choice{min-height:61px;padding:10px 12px}}
