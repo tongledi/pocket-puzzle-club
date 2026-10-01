@@ -205,3 +205,39 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
   .club-room .blocks .game-feedback{font-size:13px;min-height:19px;margin:7px 0;line-height:1.4}
   .club-room .blocks .game-controls{padding-top:8px}
 }
+
+/* Matching puzzles 1.7: quiet goals, explicit choices and contextual paths. */
+.puzzle-goal{text-align:center;margin:0 auto 13px;color:#3d5945;line-height:1.4}
+.puzzle-goal strong{display:block;font-size:15px;font-weight:650}
+.puzzle-goal>span{display:block;font-size:12px;color:#6b785f;margin-top:3px}
+.mahjong-tile.matching-tile{box-shadow:inset 0 0 0 2px #6c9461,2px 2px 0 #b7b088;background:#edf2d7}
+.mahjong-tile.selected{box-shadow:inset 0 0 0 3px #3f6d4b,2px 2px 0 #b7b088;background:#d7e9c7}
+.mahjong-tile.blocking-tile{outline:3px solid #bf744d;outline-offset:-3px}
+.mahjong-tile.hinted{outline:3px solid #bb9140;outline-offset:-3px}
+.tube.pour-destination{background:#edf1df;box-shadow:inset 0 0 0 2px #7b9965}
+.tube.selected{outline:3px solid #456d51;outline-offset:-1px;background:#e3edda}
+.tube .tube-label:after{content:none}
+.tube-label{min-height:34px;margin-top:5px;line-height:1.25;color:#526b51}
+.tube-label small{display:block;font-size:10px;font-weight:650;line-height:1.3;margin-top:3px;white-space:nowrap}
+.sorted-tube .tube-glass{border-color:#658c68}
+.tube.hint-destination{outline:3px dashed #b68b36;outline-offset:-2px}
+.arrow-tile{position:relative}
+.arrow-tile>span{pointer-events:none}
+.arrow-tile>small{position:absolute;right:4px;top:2px;font-size:16px;line-height:1;color:#873e30;pointer-events:none}
+.arrow-tile.exit-path{box-shadow:inset 0 0 0 2px #c9a584;background:#efe0c9}
+.arrow-tile.clear-path{box-shadow:inset 0 0 0 2px #a2bc86;background:#dce9cd}
+.arrow-tile.blocked-source{outline:2px dashed #a56f46;outline-offset:-4px}
+.arrow-tile.exit-blocker{box-shadow:inset 0 0 0 3px #9f5746}
+@media(max-width:700px){
+  .club-room :is(.water,.mahjong,.arrows) .board-wrap{min-height:0}
+  .puzzle-goal{margin-bottom:9px}.puzzle-goal strong{font-size:14px}.puzzle-goal>span{font-size:11px}
+  .club-room .water .tubes{gap:6px 9px;margin:3px auto;max-width:310px}
+  .club-room .water .tube{width:64px;padding:4px 6px;border-radius:12px}
+  .club-room .water .tube-glass{height:clamp(104px,calc((100svh - 392px)/2),140px)}
+  .club-room .water .tube-label{min-height:32px}
+  .club-room :is(.water,.mahjong,.arrows) .game-feedback{font-size:13px;line-height:1.4;min-height:19px;margin:9px 0}
+  .club-room :is(.water,.mahjong,.arrows) .game-controls{padding-top:9px}
+  .club-room .mahjong .game-extra{padding:5px 0;font-size:12px}
+  .club-room .mahjong-key{font-size:10px;line-height:1.4;margin-bottom:0}
+  .club-room .arrows .arrow-board{width:min(100%,max(240px,calc(100svh - 302px)));max-width:390px}
+}
