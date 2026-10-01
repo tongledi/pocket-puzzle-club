@@ -161,3 +161,6 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 /* Large browser zoom keeps the whole menu reachable without horizontal spill. */
 .menu-scene{grid-template-columns:minmax(0,1fr)}.menu-header,.menu-bottom{min-width:0}.menu-dock button{min-width:0}
 @media(max-width:320px){.menu-dock button{flex-direction:column;gap:5px;font-size:14px}.menu-header{grid-template-columns:46px minmax(0,1fr) 46px;gap:5px}.menu-header h1{font-size:23px}.menu-header h1 em{font-size:12px;letter-spacing:1.5px}.menu-resume span{font-size:15px}.menu-game-name{font-size:17px}}
+
+/* Installation lives in Settings; the game menu stays unchanged. */
+.scene-dialog .install-steps{padding-left:24px;margin:18px 0;color:#3e5940;font-size:16px;line-height:1.6}.install-steps li+li{margin-top:12px}.scene-dialog .install-guide>.menu-primary{width:100%;margin:20px 0}.scene-dialog .install-guide .settings-note{margin-bottom:0}@media(max-width:700px){.scene-dialog .install-steps{font-size:15px}}
