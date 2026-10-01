@@ -1,5 +1,6 @@
-import {solitaireDeals} from './solitaire-deals.js?v=1.10.1';
-import {shuffle,button,range,clone} from './core.js?v=1.10.1';
+import {levelPacks} from './levels.js?v=1.11.0';
+import {solitaireDeals} from './solitaire-deals.js?v=1.11.0';
+import {shuffle,button,range,clone} from './core.js?v=1.11.0';
 const suits=['♠','♥','♣','♦'];
 const red=c=>c.suit%2===1;
 const face=c=>`${['','A','2','3','4','5','6','7','8','9','10','J','Q','K'][c.rank]}${suits[c.suit]}`;
@@ -24,6 +25,21 @@ export function solitaireTargets(s,from=s.selected){
   if(!from)return [];
   return ['f:0','f:1','f:2','f:3',...range(7).map(i=>`t:${i}`)].filter(to=>solitaireMove(clone(s),from,to));
 }
+// Conservative proof: no stock draws, hidden cards or tableau rearrangements.
+// Only a complete monotone foundation route enables automatic collection.
+export function solitaireFinishPlan(s){
+  if(s.stock.length||s.tableau.some(p=>p.some(c=>!c.up))||s.waste.some(c=>!c.up))return null;
+  if(s.foundation.some((p,suit)=>p.some((c,i)=>c.suit!==suit||c.rank!==i+1||!c.up)))return null;
+  const all=[...s.tableau.flat(),...s.waste,...s.foundation.flat()];if(all.length!==52||new Set(all.map(c=>c.suit+':'+c.rank)).size!==52)return null;
+  const copy=clone(s),steps=[];copy.selected=null;
+  for(let k=0;k<52&&!copy.foundation.every(p=>p.length===13);k++){
+    const sources=[...(copy.waste.length?['w']:[]),...copy.tableau.flatMap((p,j)=>p.length?[`t:${j}:${p.length-1}`]:[])];let moved=false;
+    sources.sort((a,b)=>origin(copy,a).pile.at(-1).rank-origin(copy,b).pile.at(-1).rank);
+    for(const from of sources){const c={...origin(copy,from).pile.at(-1)},to=`f:${c.suit}`;if(solitaireMove(copy,from,to)){steps.push({from,to,card:c});moved=true;break;}}
+    if(!moved)return null;
+  }
+  return steps.length&&copy.foundation.every(p=>p.length===13)?steps:null;
+}
 function selectedMessage(s){
   return 'Card selected. Choose a destination, or tap it again to cancel.';
 }
@@ -34,10 +50,14 @@ function failedSolitaireMove(s,to){
   return !s.tableau[+to.split(':')[1]]?.length?'Only a King can fill an empty column. Your card is still selected.':'Build down by one rank, alternating red and black. Your card is still selected.';
 }
 export const solitaire={
+  finishPlan:solitaireFinishPlan,
+  applyFinish(s,steps){const copy=clone(s);copy.selected=null;for(const step of steps)if(!solitaireMove(copy,step.from,step.to))return false;if(!copy.foundation.every(p=>p.length===13))return false;Object.assign(s,copy);return true;},
+  cardMarkup(c){return card(c,'','','auto-card-ghost');},
   deals:solitaireDeals,
+  levels:solitaireDeals.map(d=>({id:d.id,level:Number(d.number),description:d.difficulty+' · provisional',state:{...d.initial,dealId:d.id}})),
   createDeal(id){const deal=solitaireDeals.find(d=>d.id===id);return deal?{...clone(deal.initial),dealId:deal.id}:null;},
   id:'solitaire',title:'Solitaire',subtitle:'The familiar comfort of a fresh deal.',tag:'Classic · Draw one',
-  rules:'Build the four foundations from Ace to King, by suit. On the seven columns, stack cards in descending order with alternating colours. Only a King can fill an empty column. Drag a face-up card or sequence to its destination, or select a card and tap its destination. Tap the selected card again to cancel. With a keyboard, Tab between buttons and press Enter or Space. Tap the stock to draw one card; recycle it when empty. Select a card and use To foundation for a quick legal foundation move. Larger cards in How to play offers a scrollable board. Random deals may be unwinnable.',
+  rules:'Build the four foundations from Ace to King, by suit. On the seven columns, stack cards in descending order with alternating colours. Only a King can fill an empty column. Drag a face-up card or sequence to its destination, or select a card and tap its destination. Tap the selected card again to cancel. With a keyboard, Tab between buttons and press Enter or Space. Tap the stock to draw one card; recycle it when empty. Select a card and use To foundation for a quick legal foundation move. Larger cards in How to play offers a scrollable board. Random deals may be unwinnable. When the stock is empty and every remaining card is face-up, a proved foundation-only finish collects the rest automatically.',
   create(){let deck=shuffle(range(52).map(i=>({rank:i%13+1,suit:i/13|0,up:false}))),tableau=[];for(let i=0;i<7;i++){tableau.push(deck.splice(0,i+1));tableau[i].at(-1).up=true;}return {tableau,stock:deck,waste:[],foundation:[[],[],[],[]],selected:null,message:''};},
   view(s){const targets=new Set(s.hintTarget?[s.hintTarget]:[]);return `<div class="solitaire-scroll" tabindex="0" aria-label="Solitaire table${s.large?', larger cards. Scroll sideways to see all columns.':''}"><div class="solitaire-board ${s.large?'large-cards':''}"><div class="card-top"><div class="stock-pile">${s.stock.length?card(s.stock.at(-1),'stock','','stock-card'):button('<span class="recycle-mark">↻</span>','stock','','card-slot stock-empty',`aria-label="Recycle waste" ${s.waste.length?'':'disabled'}`)}<small>${s.stock.length?`${s.stock.length} cards`:'Recycle'}</small></div><div class="waste-pile">${s.waste.length?card(s.waste.at(-1),'select','w',s.selected==='w'?'selected':''):'<div class="card-slot waste-slot" aria-label="Waste pile empty"></div>'}<small>Draw one</small></div><div class="card-gap"></div>${s.foundation.map((p,i)=>`<div class="foundation-pile ${targets.has(`f:${i}`)?'legal-destination':''}">${p.length?card(p.at(-1),'foundation',i,s.selected===`f:${i}`?'selected':s.hintTarget===`f:${i}`?'hinted':''):button(`<span>${suits[i]}</span><small>A</small>`,'foundation',i,`card-slot foundation-slot ${s.hintTarget===`f:${i}`?'hinted':''}`,`aria-label="${suits[i]} foundation, empty"`)}<small>${p.length===13?'Complete':'Ace to King'}</small></div>`).join('')}</div><div class="tableau">${s.tableau.map((p,j)=>`<div class="card-column ${s.hintTarget===`t:${j}`?'hinted':''} ${targets.has(`t:${j}`)?'legal-destination':''}" style="--pile-count:${Math.max(0,p.length-1)}">${button('<span>K</span>','column',j,'card-slot',`aria-label="Column ${j+1}${targets.has(`t:${j}`)?', available destination':''}"`)}${p.map((c,i)=>`<div class="stack-card" style="--card-index:${i}">${card(c,'select',`t:${j}:${i}`,s.selected===`t:${j}:${i}`?'selected':'')}</div>`).join('')}</div>`).join('')}</div></div></div>`;},
   action(s,a,v){
@@ -135,8 +155,9 @@ export function mahjongGeometry(s){
   return {width,height,faceWidth,faceHeight,pitchX,pitchY,boxes:s.tiles.map(t=>({left:padX+levels*liftX+t.x*pitchX-t.z*liftX,top:padY+levels*liftY+t.y*pitchY-t.z*liftY,width:faceWidth,height:faceHeight}))};
 }
 export const mahjong={
-  id:'mahjong',title:'Mahjong Solitaire',subtitle:'Find a pair. Uncover a possibility.',tag:'Classic · 72 tiles',
-  rules:'Clear 72 tiles across three layers. Each picture appears four times: choose which matching pair to remove. A tile is free when no tile covers it and at least one left or right side is open. Match the same picture and label. New layouts have a verified full solution, but some choices can lead to a dead end. Hints check for a route to the finish; if a search is inconclusive, the hint says so. Undo is always available after a move.',
+  levels:levelPacks.mahjong,
+  id:'mahjong',title:'Mahjong Solitaire',subtitle:'Find a pair. Uncover a possibility.',tag:'Classic · Layered matching',
+  rules:'Match identical tiles to clear the board. Starter levels grow from 28 tiles in one layer to 72 tiles in three layers; free play uses the full 72-tile layout. A tile is free when no tile covers it and at least one left or right side is open. Match the same picture and label. New layouts have a verified full solution, but some choices can lead to a dead end. Hints check for a route to the finish; if a search is inconclusive, the hint says so. Undo is always available after a move.',
   create(){
     let tiles=[];for(let y=0;y<6;y++)for(let x=0;x<8;x++)tiles.push({x,y,z:0,type:0,gone:false});
     for(let y=1;y<=4;y++)for(let x=2;x<=5;x++)tiles.push({x,y,z:1,type:0,gone:false});

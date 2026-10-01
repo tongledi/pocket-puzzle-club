@@ -1,4 +1,5 @@
-import {shuffle,button,range,grids,clone} from './core.js?v=1.10.1';
+import {levelPacks} from './levels.js?v=1.11.0';
+import {shuffle,button,range,grids,clone} from './core.js?v=1.11.0';
 export const waterColors=['#de6557','#477ace','#edbd43','#7760a9','#299a84'];
 const waterNames=['Coral','Blue','Gold','Violet','Jade'];
 const waterSymbols=['●','◆','★','✿','▲'];
@@ -35,8 +36,9 @@ export function waterSolve(s,{maxNodes=10000,maxMs=100,maxDepth=128}={}){
   const path=visit(s.tubes);return {status:path?'solved':limited?'limit':'blocked',path,nodes};
 }
 export const water={
+  levels:levelPacks.water,
   id:'water',title:'Water Sort',subtitle:'A satisfying splash of order.',tag:'Modern · Sort the colours',
-  rules:'Tap a tube, then a destination to pour its top matching drops. The top colour can pour only onto the same colour or into an empty tube, up to four drops per tube. Fill five tubes with one colour each, leaving two empty. Every starting puzzle has a legal solution. Hints verify a full route when possible and say when the search is inconclusive. Tap a selected tube again to cancel. Symbols help distinguish the colours.',
+  rules:'Tap a tube, then a destination to pour its top matching drops. The top colour can pour only onto the same colour or into an empty tube, up to four drops per tube. Fill one tube per colour, leaving two empty. Starter levels have three, four and five colours; free play uses five. Every starting puzzle has a legal solution. Hints verify a full route when possible and say when the search is inconclusive. Tap a selected tube again to cancel. Symbols help distinguish the colours.',
   create(){
     let s={tubes:range(5).map(c=>[c,c,c,c]).concat([[],[]]),selected:null,message:'',path:[]};
     // Each reverse step moves one drop onto a different colour or empty tube,
@@ -45,7 +47,7 @@ export const water={
   },
   view(s){
     const selected=Number.isInteger(s.selected)&&s.tubes[s.selected]?.length?s.selected:null,complete=s.tubes.filter(tubeComplete).length;
-    return `<div class="puzzle-goal"><strong>${complete} / 5 colours sorted</strong><span>One colour per full tube</span></div><div class="tubes">${s.tubes.map((t,i)=>{
+    return `<div class="puzzle-goal"><strong>${complete} / ${s.colorCount||5} colours sorted</strong><span>One colour per full tube</span></div><div class="tubes">${s.tubes.map((t,i)=>{
       const plan=selected==null||s.hintTarget!==i?null:waterPourPlan(s,selected,i),chosen=selected===i,done=tubeComplete(t),status=chosen?'Selected':done?'✓ Sorted':'';
       return button(`<span class="tube-glass">${range(4).reverse().map(n=>`<span class="drop ${t[n]==null?'air':''}" style="--liquid:${waterColors[t[n]]||'transparent'}">${t[n]==null?'':waterSymbols[t[n]]}</span>`).join('')}</span><span class="tube-label">${i+1}<small>${status||'&nbsp;'}</small></span>`,'tube',i,`tube ${chosen?'selected':''}  ${done?'sorted-tube':''} ${s.hintTarget===i&&plan?'hint-destination':''}`,`aria-pressed="${chosen}" aria-label="Tube ${i+1}: ${t.length?t.map(c=>waterNames[c]).join(', ')+' from bottom to top':'empty'}${chosen?', selected':plan?`, pour ${plan.count} ${waterNames[plan.color]} drops here`:done?', sorted':''}"`);
     }).join('')}</div>`;
@@ -53,7 +55,7 @@ export const water={
   action(s,a,v){
     if(a==='hint'){
       s.selected=null;s.hintTarget=null;
-      if(waterWon(s)){s.message='All five colours sorted!';return false;}
+      if(waterWon(s)){s.message=`All ${s.colorCount||5} colours sorted!`;return false;}
       const saved=savedWaterRoute(s),result=saved?{status:'solved',path:saved}:waterSolve(s);
       if(result.status==='solved'){
         s.path=result.path;const [from,to]=s.path[0];s.selected=from;s.hintTarget=to;s.message=`Pour tube ${from+1} into tube ${to+1}. This starts a verified route to finish.`;

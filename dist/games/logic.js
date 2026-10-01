@@ -1,7 +1,9 @@
-import {shuffle,button,range,grids} from './core.js?v=1.10.1';
+import {levelPacks} from './levels.js?v=1.11.0';
+import {shuffle,button,range,grids} from './core.js?v=1.11.0';
 const slideWon=s=>s.cells.every((n,i)=>n===(i+1)%16);
 const near=(a,b)=>Math.abs(a%4-b%4)+Math.abs((a/4|0)-(b/4|0))===1;
 export const sliding={
+  levels:levelPacks.sliding,
   id:'sliding',title:'Sliding Tiles',subtitle:'One space. A little perspective.',tag:'Classic · 4 × 4',
   rules:'Slide a tile next to the empty space. Arrange 1–15 in order, with the empty space at the bottom right. Every new puzzle is scrambled using legal moves, so it can be solved. Arrow keys move the empty space. Hint takes one step back along the recorded path; it is not always the shortest route.',
   create(){let s={cells:range(16).map(i=>(i+1)%16),trail:[],message:''};let last=-1;for(let i=0;i<90;i++){let z=s.cells.indexOf(0),opts=range(16).filter(j=>near(j,z)&&j!==last),j=opts[Math.random()*opts.length|0];s.trail.push(z);[s.cells[z],s.cells[j]]=[s.cells[j],s.cells[z]];last=z;}return s;},
@@ -22,6 +24,7 @@ export function arrowPath(s,i,d=s.cells[i]){
 }
 export function arrowFree(s,i,d=s.cells[i]){const path=arrowPath(s,i,d);return !!path&&path.blocker==null;}
 export const arrows={
+  levels:levelPacks.arrows,
   id:'arrows',title:'Arrow Escape',subtitle:'Find a clear way out.',tag:'Modern · Clear the board',
   rules:'Tap an arrow only when its path to the edge is clear. Arrows travel in the direction they point; any other arrow in that row or column blocks the exit. A blocked arrow bumps into the first arrow ahead and returns. Hint shows one clear exit. Remove them all. Each starting board has a solution.',
   create(){let s={cells:Array(36).fill(null),message:''};for(const i of shuffle(range(36))){let ds=range(4).filter(d=>arrowFree({...s,cells:s.cells.map((x,j)=>j===i?d:x)},i,d));if(ds.length)s.cells[i]=ds[Math.random()*ds.length|0];}return s;},
@@ -113,8 +116,9 @@ export function sudokuNextCell(selected, key) {
 }
 function sudokuClearPeerNotes(s, i, n) { if (s.notes) s.notes = s.notes.map((mask, j) => sudokuPeer(i, j) ? mask & ~(1 << n) : mask); }
 export const sudoku = {
+  levels:levelPacks.sudoku,
   id: 'sudoku', title: 'Sudoku', subtitle: 'Give every number its place.', tag: 'Classic · Gentle',
-  rules: 'Fill each row, column and 3 × 3 box with 1–9 exactly once. Every new puzzle has one solution and 36–40 clues. Select a cell, then a number. Pencil lets you toggle small notes in empty cells. Erase clears a cell or its notes. Matching numbers and peers are highlighted; counts show how many of each number remain. Red outlines show duplicates, not every wrong answer. Arrow keys move the selection; N switches pencil mode. Hint fills one cell. Undo also restores notes.',
+  rules: 'Fill each row, column and 3 × 3 box with 1–9 exactly once. Every new puzzle has one solution. Starter levels have 46, 39 and 32 clues; free play usually has 36–40. Select a cell, then a number. Pencil lets you toggle small notes in empty cells. Erase clears a cell or its notes. Matching numbers and peers are highlighted; counts show how many of each number remain. Red outlines show duplicates, not every wrong answer. Arrow keys move the selection; N switches pencil mode. Hint fills one cell. Undo also restores notes.',
   create() { const {cells, answer} = sudokuPuzzle(); return {generatorVersion:2,cells, answer, given: cells.map(Boolean), selected: -1, notes: Array(81).fill(0), notesMode: false, message: ''}; },
   view(s) {
     const selectedNumber = s.cells[s.selected] || 0, counts = range(10).map(n => s.cells.filter(v => v === n).length), editable=s.selected>=0&&!s.given[s.selected], conflicts=s.cells.filter((n,i)=>sudokuConflict(s,i)).length;
@@ -156,6 +160,7 @@ export function wordLine(s,start,end){
   return {path,text,index};
 }
 export const words={
+  levels:levelPacks.words,
   id:'words',title:'Word Search',subtitle:'A small discovery in every line.',tag:'Words · Six to find',
   rules:'Find the listed English words. Drag from the first letter to the last, or tap the two endpoints. Tap a selected first letter again to cancel. Words can go horizontally, vertically or diagonally, forwards or backwards. Release outside the board or press Escape to cancel a drag. Hint highlights the first letter of a word you have not found.',
   create(){const list=wordSets[Math.random()*wordSets.length|0],cells=Array(100).fill(''),paths=[];for(let word of list){let placed=false;for(let attempt=0;attempt<1000&&!placed;attempt++){let [dx,dy]=shuffle([[1,0],[0,1],[1,1],[-1,1],[-1,0],[0,-1],[-1,-1],[1,-1]])[0],x=Math.random()*10|0,y=Math.random()*10|0,p=range(word.length).map(i=>[x+i*dx,y+i*dy]);if(p.every(([x,y],i)=>x>=0&&x<10&&y>=0&&y<10&&(!cells[y*10+x]||cells[y*10+x]===word[i]))){let ids=p.map(([x,y])=>y*10+x);ids.forEach((i,j)=>cells[i]=word[j]);paths.push(ids);placed=true;}}if(!placed)return this.create();}return {cells:cells.map(c=>c||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.random()*26|0]),list,paths,found:[],selected:null,message:''};},
