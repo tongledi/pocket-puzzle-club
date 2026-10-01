@@ -17,6 +17,13 @@ const mahjongSymbols=[
 const legacyMahjongSymbols=[['春','Spring'],['夏','Summer'],['秋','Autumn'],['冬','Winter'],['竹','Bamboo'],['梅','Plum'],['菊','Mum'],['蘭','Orchid'],['一','One'],['二','Two'],['三','Three'],['四','Four'],['五','Five'],['六','Six']];
 function mahjongFace(s,t){return (s.symbolsVersion===2?mahjongSymbols:legacyMahjongSymbols)[t.type]||['?','Tile'];}
 export function freeTile(s,i){let t=s.tiles[i];if(!t||t.gone)return false;let active=s.tiles.filter(t=>!t.gone);return !active.some(q=>q.z>t.z&&q.x===t.x&&q.y===t.y)&&(!active.some(q=>q.z===t.z&&q.y===t.y&&q.x===t.x-1)||!active.some(q=>q.z===t.z&&q.y===t.y&&q.x===t.x+1));}
+export function mahjongBlockReason(s,i){
+  const t=s.tiles[i];if(!t||t.gone)return 'removed';
+  const active=s.tiles.filter(q=>!q.gone);
+  if(active.some(q=>q.z>t.z&&q.x===t.x&&q.y===t.y))return 'covered';
+  if(active.some(q=>q.z===t.z&&q.y===t.y&&q.x===t.x-1)&&active.some(q=>q.z===t.z&&q.y===t.y&&q.x===t.x+1))return 'side-blocked';
+  return 'free';
+}
 function mahjongPairs(s){let free=s.tiles.map((t,i)=>freeTile(s,i)?i:-1).filter(i=>i>=0),out=[];for(let a=0;a<free.length;a++)for(let b=a+1;b<free.length;b++)if(s.tiles[free[a]].type===s.tiles[free[b]].type)out.push([free[a],free[b]]);return out;}
 // Validate the complete saved route, not just its first pair: alternate matches can break it.
 function savedMahjongRoute(s){if(!Array.isArray(s.solution))return null;let copy={tiles:s.tiles.map(t=>({...t}))},route=[];for(let pair of s.solution){if(!Array.isArray(pair)||pair.length!==2)return null;let [a,b]=pair,ta=copy.tiles[a],tb=copy.tiles[b];if(!ta||!tb||a===b)return null;if(ta.gone&&tb.gone)continue;if(ta.gone||tb.gone||ta.type!==tb.type||!freeTile(copy,a)||!freeTile(copy,b))return null;ta.gone=tb.gone=true;route.push([a,b]);}return copy.tiles.every(t=>t.gone)?route:null;}
@@ -63,7 +70,7 @@ export const mahjong={
   },
   view(s){
     let cols=Math.max(...s.tiles.map(t=>t.x))+1,rows=Math.max(...s.tiles.map(t=>t.y))+1,dx=97/cols,dy=93/rows;
-    return `${s.symbolsVersion!==2?'<p class="saved-layout-note">Resuming your saved 28-tile layout. Choose New game for the new 72-tile board.</p>':''}<div class="mahjong-board" style="position:relative;width:100%;height:clamp(360px,78vw,460px);aspect-ratio:auto">${s.tiles.map((t,i)=>{if(t.gone)return '';let free=freeTile(s,i),[glyph,label]=mahjongFace(s,t);return `<div class="mahjong-pos" style="left:${t.x*dx+t.z*.65}%;top:${4+t.y*dy-t.z*1.3}%;width:${dx-.35}%;height:${dy-1}%;z-index:${t.z+1}">${button(`<span aria-hidden="true" style="display:block;font-size:clamp(21px,4.8vw,34px);line-height:1.15">${glyph}</span><span aria-hidden="true" style="display:block;font-size:clamp(8px,1.7vw,11px);line-height:1.4;font-weight:700">${label}</span>`,'tile',i,`mahjong-tile ${free?'free':'blocked'} ${t.z?'raised':''} ${s.selected===i?'selected':''} ${s.hint?.includes(i)?'hinted':''}`,`style="width:100%;height:100%;min-width:0;padding:2px;display:flex;flex-direction:column;justify-content:center;align-items:center" aria-label="${label} tile, layer ${t.z+1}, row ${t.y+1}, column ${t.x+1}, ${free?'free':'blocked'}" aria-pressed="${s.selected===i}"`)}</div>`;}).join('')}</div><div class="game-extra">${s.tiles.filter(t=>!t.gone).length} tiles remaining · ${mahjongPairs(s).length} available pairs</div>`;
+    return `${s.symbolsVersion!==2?'<p class="saved-layout-note">Resuming your saved 28-tile layout. Choose New game for the new 72-tile board.</p>':''}<div class="mahjong-board" style="position:relative;width:100%;height:clamp(360px,78vw,460px);aspect-ratio:auto">${s.tiles.map((t,i)=>{if(t.gone)return '';let reason=mahjongBlockReason(s,i),free=reason==='free',[glyph,label]=mahjongFace(s,t),availability=free?'free':reason==='covered'?'covered by an upper tile':'both side exits blocked';return `<div class="mahjong-pos" style="left:${t.x*dx+t.z*1.2}%;top:${5+t.y*dy-t.z*2}%;width:${dx-.35}%;height:${dy-1}%;z-index:${t.z+1}">${button(`<span aria-hidden="true" style="display:block;font-size:clamp(21px,4.8vw,34px);line-height:1.15">${glyph}</span><span aria-hidden="true" style="display:block;font-size:clamp(8px,1.7vw,11px);line-height:1.4;font-weight:700">${label}</span><small class="mahjong-layer" aria-hidden="true">${t.z+1}</small>`,'tile',i,`mahjong-tile ${free?'free':'blocked'} ${reason} ${t.z?'raised':''} ${s.selected===i?'selected':''} ${s.hint?.includes(i)?'hinted':''}`,`style="width:100%;height:100%;min-width:0;padding:2px;display:flex;flex-direction:column;justify-content:center;align-items:center" aria-label="${label} tile, layer ${t.z+1}, row ${t.y+1}, column ${t.x+1}, ${availability}" title="Layer ${t.z+1}: ${availability}" aria-pressed="${s.selected===i}"`)}</div>`;}).join('')}</div><div class="game-extra">${s.tiles.filter(t=>!t.gone).length} tiles remaining · ${mahjongPairs(s).length} available pairs</div><p class="mahjong-key">Corner numbers show layers. Two side bars mean both exits are blocked; gray tiles have a tile above.</p>`;
   },
   action(s,a,v){
     if(a==='hint'){
@@ -75,7 +82,7 @@ export const mahjong={
       return false;
     }
     if(a==='tile'){
-      let i=+v;if(!freeTile(s,i)){s.message='This tile is covered or blocked on both sides.';return false;}
+      let i=+v;if(!freeTile(s,i)){const reason=mahjongBlockReason(s,i);s.message=reason==='covered'?'Another tile is directly above this one. Remove that upper tile first.':reason==='side-blocked'?'Both left and right exits are blocked. Clear either neighbouring tile first.':'That tile is no longer on the board.';return false;}
       if(s.selected===i){s.selected=null;return false;}
       if(s.selected!=null&&freeTile(s,s.selected)&&s.tiles[i].type===s.tiles[s.selected].type){s.tiles[i].gone=s.tiles[s.selected].gone=true;s.selected=null;s.hint=null;s.message=mahjongPairs(s).length?'A pair cleared.':s.tiles.every(t=>t.gone)?'All pairs cleared!':'No free pairs remain. Undo can help.';return true;}
       s.selected=i;s.hint=null;s.message='Choose another free tile with the same picture and label.';
