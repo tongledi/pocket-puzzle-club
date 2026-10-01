@@ -278,7 +278,7 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
   .club-room :is(.sliding,.words,.sudoku) .board-wrap{min-height:0}
   .club-room .sliding .sliding-board{width:min(100%,max(248px,calc(100svh - 310px)));max-width:390px}
   .club-room .words .word-board{width:min(100%,max(270px,calc(100svh - 367px)));max-width:390px}
-  .club-room .sudoku .sudoku-board{width:min(100%,max(270px,calc(100svh - 365px)));max-width:390px}
+  .club-room .sudoku .sudoku-board{width:min(100%,max(270px,calc(100svh - 397px)));max-width:390px}
   .club-room .sudoku-cell{min-height:0;font-size:21px}
   .club-room .word-board .letter{font-size:17px}
   .words .word-list{margin-top:10px;gap:6px 8px}
@@ -291,3 +291,6 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
   .club-room :is(.sliding,.words,.sudoku) .game-controls{padding-top:9px}
 }
 @media(prefers-reduced-motion:reduce){.slide-tile{transition:none}}
+
+/* Only the extra status text is visually hidden; assistive readers keep it. */
+.words .word-list .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
