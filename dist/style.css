@@ -233,7 +233,7 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
   .puzzle-goal{margin-bottom:9px}.puzzle-goal strong{font-size:14px}.puzzle-goal>span{font-size:11px}
   .club-room .water .tubes{gap:6px 9px;margin:3px auto;max-width:310px}
   .club-room .water .tube{width:64px;padding:4px 6px;border-radius:12px}
-  .club-room .water .tube-glass{height:clamp(104px,calc((100svh - 392px)/2),140px)}
+  .club-room .water .tube-glass{height:clamp(104px,calc((100svh - 424px)/2),140px)}
   .club-room .water .tube-label{min-height:32px}
   .club-room :is(.water,.mahjong,.arrows) .game-feedback{font-size:13px;line-height:1.4;min-height:19px;margin:9px 0}
   .club-room :is(.water,.mahjong,.arrows) .game-controls{padding-top:9px}
