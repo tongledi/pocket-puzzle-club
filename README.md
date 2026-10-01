@@ -118,3 +118,20 @@ Source and VM tests verify logic, not physical-device touch or screen-reader usa
 - Water Sort settings/help timer freeze, Escape, restored focus and inert background checked through the UI
 - Desktop four-column composition visually checked; browser zoom/size restored after testing
 - Browser DevTools are organization-disabled, so these are resized/zoomed browser checks, not device emulation or physical-phone/touch/screen-reader verification
+
+
+## Install entry release 1.5.2 — local implementation
+
+- Settings includes **Add to home screen** on mobile and **Install Pocket Puzzle** on desktop; the eight-game menu is unchanged
+- Where the browser supplies `beforeinstallprompt`, one explicit tap invokes the native confirmation. Events are consumed once; repeated taps, dismissal and failures are handled
+- iPhone/iPad Share guidance includes third-party browsers and desktop-mode iPads; Android, desktop Chrome/Edge and Mac Safari receive applicable manual steps
+- The entry hides in standalone/iOS web-app launch mode or after the browser's `appinstalled` event. Accepting a prompt alone does not claim installation completed; no guessed installed flag is stored
+- `dist/manifest.webmanifest` uses relative `start_url` and `scope` (`./`), opening the game menu without QA queries or game hashes. Its stable `id` is `/pocket-puzzle-club/dist/`: manifest IDs resolve against the **origin**, not the manifest directory
+- Original green/ivory brand artwork supplies opaque 192px and 512px PNG icons (512px is mask-safe), plus a 180px Apple touch icon and legacy standalone metadata
+- Internet is required. No service worker, offline cache, analytics, permissions or account service was added. Some devices keep installed-app and browser saves separate; no cross-device/cloud-save promise is made
+- Existing schema-1 rounds and QA namespaces are retained; the native install prompt is disabled in `?qa=1` to avoid accidental host installation during QA
+- 16 added simulated-event/static-asset suites cover prompt timing, accepted/dismissed/error outcomes, duplicate taps, delayed events, installed-mode changes, platform guidance, modal/history timing, all eight game guards, QA isolation and asset resolution
+
+Run `npm test` for the aggregate suite. `npm run dev -- --base=/pocket-puzzle-club/dist/` simulates the production path and serves the manifest/PNG MIME types. No install/build step is required. Local browser navigation is restricted in the current QA environment, so this release has **not** received browser visual QA, physical-device installation testing or live deployment verification. No app has been installed on the QA host.
+
+Implementation references: [browser install criteria](https://web.dev/articles/install-criteria), [manifest ID processing](https://www.w3.org/TR/appmanifest/#id-member), [iPhone web apps](https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios), [Mac Safari web apps](https://support.apple.com/en-gb/104996). Native prompt availability remains controlled by the browser and its eligibility/engagement rules.
