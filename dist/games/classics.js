@@ -1,4 +1,5 @@
-import {shuffle,button,range,clone} from './core.js?v=1.9.2';
+import {solitaireDeals} from './solitaire-deals.js?v=1.10.0';
+import {shuffle,button,range,clone} from './core.js?v=1.10.0';
 const suits=['♠','♥','♣','♦'];
 const red=c=>c.suit%2===1;
 const face=c=>`${['','A','2','3','4','5','6','7','8','9','10','J','Q','K'][c.rank]}${suits[c.suit]}`;
@@ -33,6 +34,8 @@ function failedSolitaireMove(s,to){
   return !s.tableau[+to.split(':')[1]]?.length?'Only a King can fill an empty column. Your card is still selected.':'Build down by one rank, alternating red and black. Your card is still selected.';
 }
 export const solitaire={
+  deals:solitaireDeals,
+  createDeal(id){const deal=solitaireDeals.find(d=>d.id===id);return deal?{...clone(deal.initial),dealId:deal.id}:null;},
   id:'solitaire',title:'Solitaire',subtitle:'The familiar comfort of a fresh deal.',tag:'Classic · Draw one',
   rules:'Build the four foundations from Ace to King, by suit. On the seven columns, stack cards in descending order with alternating colours. Only a King can fill an empty column. Drag a face-up card or sequence to its destination, or select a card and tap its destination. Tap the selected card again to cancel. With a keyboard, Tab between buttons and press Enter or Space. Tap the stock to draw one card; recycle it when empty. Select a card and use To foundation for a quick legal foundation move. Larger cards in How to play offers a scrollable board. Random deals may be unwinnable.',
   create(){let deck=shuffle(range(52).map(i=>({rank:i%13+1,suit:i/13|0,up:false}))),tableau=[];for(let i=0;i<7;i++){tableau.push(deck.splice(0,i+1));tableau[i].at(-1).up=true;}return {tableau,stock:deck,waste:[],foundation:[[],[],[],[]],selected:null,message:''};},
@@ -122,6 +125,15 @@ export function mahjongSolve(s,{maxNodes=12000,maxMs=120}={}){
   }
   let path=visit(initial);return {status:path?'solved':limited?'limit':'blocked',path,nodes};
 }
+// Uniform physical face ratio and a coherent orthographic elevation projection.
+// Projected edge overlap is not logical cover: only a tile above the same x/y
+// blocks it. Adjacent exposed face centers remain clear at every layer.
+export function mahjongGeometry(s){
+  const cols=Math.max(...s.tiles.map(t=>t.x))+1,rows=Math.max(...s.tiles.map(t=>t.y))+1,levels=Math.max(...s.tiles.map(t=>t.z));
+  const faceWidth=1,faceHeight=1.34,pitchX=1.035,pitchY=1.375,liftX=.055,liftY=.095,padX=.18,padY=.30;
+  const width=(cols-1)*pitchX+faceWidth+2*padX+levels*liftX,height=(rows-1)*pitchY+faceHeight+2*padY+levels*liftY;
+  return {width,height,faceWidth,faceHeight,pitchX,pitchY,boxes:s.tiles.map(t=>({left:padX+levels*liftX+t.x*pitchX-t.z*liftX,top:padY+levels*liftY+t.y*pitchY-t.z*liftY,width:faceWidth,height:faceHeight}))};
+}
 export const mahjong={
   id:'mahjong',title:'Mahjong Solitaire',subtitle:'Find a pair. Uncover a possibility.',tag:'Classic · 72 tiles',
   rules:'Clear 72 tiles across three layers. Each picture appears four times: choose which matching pair to remove. A tile is free when no tile covers it and at least one left or right side is open. Match the same picture and label. New layouts have a verified full solution, but some choices can lead to a dead end. Hints check for a route to the finish; if a search is inconclusive, the hint says so. Undo is always available after a move.',
@@ -154,8 +166,8 @@ export const mahjong={
   },
   view(s){
     const remaining=s.tiles.filter(t=>!t.gone).length;
-    const cols=Math.max(...s.tiles.map(t=>t.x))+1,rows=Math.max(...s.tiles.map(t=>t.y))+1,dx=96/cols,dy=90/rows;
-    return `<div class="puzzle-goal"><strong>${remaining} tiles left</strong><span>Match identical free tiles</span></div>${s.symbolsVersion!==2?'<p class="saved-layout-note">Resuming your saved 28-tile layout. New game creates a 72-tile board.</p>':''}<div class="mahjong-board depth-board" style="position:relative;width:100%;height:clamp(294px,calc(100svh - 345px),420px);aspect-ratio:auto">${s.tiles.map((t,i)=>{if(t.gone)return '';const reason=mahjongBlockReason(s,i),[glyph,label]=mahjongFace(s,t),availability=reason==='free'?'free':reason==='covered'?'covered by an upper tile':'both side exits blocked';return `<div class="mahjong-pos" style="left:${2+t.x*dx+t.z*1.2}%;top:${8+t.y*dy-t.z*2.15}%;width:${dx-2.5}%;height:${dy-4.5}%;z-index:${t.z*100+t.y+1};--tile-level:${t.z}">${button(`<span class="mahjong-glyph" aria-hidden="true">${glyph}</span><span class="mahjong-name" aria-hidden="true">${label}</span>`,'tile',i,`mahjong-tile ${reason} ${t.z?'raised':''} ${s.selected===i?'selected':''} ${s.hint?.includes(i)?'hinted':''}`,`aria-label="${label} tile, layer ${t.z+1}, row ${t.y+1}, column ${t.x+1}, ${availability}" title="${label}: ${availability}" aria-pressed="${s.selected===i}"`)}</div>`;}).join('')}</div>`;
+    const geometry=mahjongGeometry(s);
+    return `<div class="puzzle-goal"><strong>${remaining} tiles left</strong><span>Match identical free tiles</span></div>${s.symbolsVersion!==2?'<p class="saved-layout-note">Resuming your saved 28-tile layout. New game creates a 72-tile board.</p>':''}<div class="mahjong-board depth-board" style="--board-aspect:${geometry.width/geometry.height}">${s.tiles.map((t,i)=>{if(t.gone)return '';const box=geometry.boxes[i],reason=mahjongBlockReason(s,i),[glyph,label]=mahjongFace(s,t),availability=reason==='free'?'free':reason==='covered'?'covered by an upper tile':'both side exits blocked';return `<div class="mahjong-pos" style="left:${box.left/geometry.width*100}%;top:${box.top/geometry.height*100}%;width:${box.width/geometry.width*100}%;height:${box.height/geometry.height*100}%;z-index:${t.z*100+t.y+1};--tile-level:${t.z}">${button(`<span class="mahjong-glyph" aria-hidden="true">${glyph}</span><span class="mahjong-name" aria-hidden="true">${label}</span>`,'tile',i,`mahjong-tile ${reason} ${t.z?'raised':''} ${s.selected===i?'selected':''} ${s.hint?.includes(i)?'hinted':''}`,`aria-label="${label} tile, layer ${t.z+1}, row ${t.y+1}, column ${t.x+1}, ${availability}" title="${label}: ${availability}" aria-pressed="${s.selected===i}"`)}</div>`;}).join('')}</div>`;
   },
   action(s,a,v){
     if(a==='hint'){
