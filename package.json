@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/rules.mjs && node tests/lifecycle.mjs && node tests/sudoku-variety.mjs && node tests/mahjong-variety.mjs && node tests/player-regressions.cjs && npm run test:paths",
+    "test": "node tests/rules.mjs && node tests/lifecycle.mjs && node tests/sudoku-variety.mjs && node tests/mahjong-variety.mjs && node tests/player-regressions.cjs && node tests/save-resilience.mjs && npm run test:paths",
     "dev": "node scripts/serve.mjs",
     "test:paths": "node tests/subpath-assets.mjs"
   },
