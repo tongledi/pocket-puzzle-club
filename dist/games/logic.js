@@ -1,10 +1,39 @@
-import {shuffle,button,range,grids} from './core.js?v=1.6.1';
+import {shuffle,button,range,grids} from './core.js?v=1.7.0';
 const slideWon=s=>s.cells.every((n,i)=>n===(i+1)%16);
 const near=(a,b)=>Math.abs(a%4-b%4)+Math.abs((a/4|0)-(b/4|0))===1;
 export const sliding={id:'sliding',title:'Sliding Tiles',subtitle:'One space. A little perspective.',tag:'Classic · 4 × 4',rules:'Slide a tile next to the empty space. Arrange 1–15 in order, with the empty space at the bottom right. Every new puzzle is scrambled using legal moves, so it can be solved. Arrow keys move the empty space.',create(){let s={cells:range(16).map(i=>(i+1)%16),trail:[],message:''};let last=-1;for(let i=0;i<90;i++){let z=s.cells.indexOf(0),opts=range(16).filter(j=>near(j,z)&&j!==last),j=opts[Math.random()*opts.length|0];s.trail.push(z);[s.cells[z],s.cells[j]]=[s.cells[j],s.cells[z]];last=z;}return s;},view(s){return grids(s.cells.map((n,i)=>button(n||'','tile',i,`slide-tile ${n?'':'empty'}`,`aria-label="${n?'Move tile '+n:'Empty space'}" ${n?'':'disabled'}`)),4,'sliding-board');},action(s,a,v){if(a==='hint'){if(s.trail.length){v=s.trail.pop();let z=s.cells.indexOf(0);[s.cells[z],s.cells[v]]=[s.cells[v],s.cells[z]];s.message='One step back along your path to the solved board.';return true;}return false;}if(a==='tile'){let z=s.cells.indexOf(0),i=+v;if(s.cells[i]&&near(i,z)){if(s.trail.at(-1)===i)s.trail.pop();else s.trail.push(z);[s.cells[z],s.cells[i]]=[s.cells[i],s.cells[z]];s.message='';return true;}s.message='Choose a tile beside the empty space.';}return false;},won:slideWon};
 const dirs=[[0,-1,'↑'],[1,0,'→'],[0,1,'↓'],[-1,0,'←']];
-export function arrowFree(s,i,d=s.cells[i]){if(d==null)return false;let [dx,dy]=dirs[d],x=i%6+dx,y=(i/6|0)+dy;while(x>=0&&x<6&&y>=0&&y<6){if(s.cells[y*6+x]!=null)return false;x+=dx;y+=dy;}return true;}
-export const arrows={id:'arrows',title:'Arrow Escape',subtitle:'Find a clear way out.',tag:'Modern · Clear the board',rules:'Tap an arrow only when its path to the edge is clear. Arrows travel in the direction they point; any other arrow in that row or column blocks the exit. Remove them all. Each starting board has a solution.',create(){let s={cells:Array(36).fill(null),message:''};for(const i of shuffle(range(36))){let ds=range(4).filter(d=>arrowFree({...s,cells:s.cells.map((x,j)=>j===i?d:x)},i,d));if(ds.length)s.cells[i]=ds[Math.random()*ds.length|0];}return s;},view(s){return grids(s.cells.map((d,i)=>button(d==null?'':dirs[d][2],'arrow',i,`arrow-tile ${d==null?'empty':''} ${s.hint===i?'hinted':''} ${s.blocked?.includes(i)?'blocking-arrow':''}`,`aria-label="${d==null?'Empty': ['Up','Right','Down','Left'][d]+' arrow, row '+((i/6|0)+1)+', column '+(i%6+1)}" ${d==null?'disabled':''}`)),6,'arrow-board');},action(s,a,v){if(a==='hint'){s.blocked=[];let i=s.cells.findIndex((d,i)=>d!=null&&arrowFree(s,i));s.hint=i;s.message=i>=0?'The highlighted arrow has a clear exit.':'Board cleared.';return false;}if(a==='arrow'&&s.cells[+v]!=null){if(arrowFree(s,+v)){s.cells[+v]=null;s.hint=null;s.blocked=[];s.message='Clear path!';return true;}let i=+v,[dx,dy]=dirs[s.cells[i]],x=i%6+dx,y=(i/6|0)+dy;s.blocked=[i];while(x>=0&&x<6&&y>=0&&y<6){if(s.cells[y*6+x]!=null){s.blocked.push(y*6+x);break;}x+=dx;y+=dy;}s.message='The two marked arrows show the blockage. Clear the arrow ahead first.';}return false;},won:s=>s.cells.every(x=>x==null)};
+export function arrowPath(s,i,d=s.cells[i]){
+  if(!Number.isInteger(i)||i<0||i>=36||!Number.isInteger(d)||!dirs[d])return null;
+  const [dx,dy]=dirs[d],cells=[];let x=i%6+dx,y=(i/6|0)+dy,blocker=null;
+  while(x>=0&&x<6&&y>=0&&y<6){const j=y*6+x;cells.push(j);if(s.cells[j]!=null){blocker=j;break;}x+=dx;y+=dy;}
+  return {cells,blocker};
+}
+export function arrowFree(s,i,d=s.cells[i]){const path=arrowPath(s,i,d);return !!path&&path.blocker==null;}
+export const arrows={
+  id:'arrows',title:'Arrow Escape',subtitle:'Find a clear way out.',tag:'Modern · Clear the board',
+  rules:'Tap an arrow only when its path to the edge is clear. Arrows travel in the direction they point; any other arrow in that row or column blocks the exit. A blocked tap marks the arrow ahead and the path between them. Hint shows one clear exit. Remove them all. Each starting board has a solution.',
+  create(){let s={cells:Array(36).fill(null),message:''};for(const i of shuffle(range(36))){let ds=range(4).filter(d=>arrowFree({...s,cells:s.cells.map((x,j)=>j===i?d:x)},i,d));if(ds.length)s.cells[i]=ds[Math.random()*ds.length|0];}return s;},
+  view(s){
+    const inspect=s.blocked?.length?s.blocked[0]:s.hint,path=inspect==null?null:arrowPath(s,inspect),remaining=s.cells.filter(d=>d!=null).length;
+    return `<div class="puzzle-goal"><strong>${remaining} arrows left</strong><span>Find a clear path to the edge</span></div>`+grids(s.cells.map((d,i)=>{
+      const traced=path?.cells.includes(i),blocked=s.blocked?.includes(i),source=s.blocked?.[0]===i,barrier=s.blocked?.[1]===i;
+      return button(d==null?'':`<span aria-hidden="true">${dirs[d][2]}</span>${barrier?'<small aria-hidden="true">×</small>':''}`,'arrow',i,`arrow-tile ${d==null?'empty':''} ${s.hint===i?'hinted':''} ${blocked?'blocking-arrow':''} ${source?'blocked-source':''} ${barrier?'exit-blocker':''} ${traced?'exit-path':''} ${traced&&path.blocker==null?'clear-path':''}`,`aria-label="${d==null?'Empty': ['Up','Right','Down','Left'][d]+' arrow, row '+((i/6|0)+1)+', column '+(i%6+1)}${barrier?', blocks the selected exit':''}${source?', exit blocked':''}${s.hint===i?', clear exit hint':''}" ${d==null?'disabled':''}`);
+    }),6,'arrow-board');
+  },
+  action(s,a,v){
+    if(a==='hint'){s.blocked=[];const i=s.cells.findIndex((d,i)=>d!=null&&arrowFree(s,i));s.hint=i;s.message=i>=0?`The highlighted ${['up','right','down','left'][s.cells[i]]} arrow has a clear exit.`:s.cells.every(d=>d==null)?'Board cleared.':'No clear exits remain. Undo a move or restart this board.';return false;}
+    if(a==='arrow'){
+      const i=v===''?NaN:+v;if(!Number.isInteger(i)||i<0||i>=36||s.cells[i]==null)return false;
+      const path=arrowPath(s,i);s.hint=null;
+      if(path.blocker==null){s.cells[i]=null;s.blocked=[];const left=s.cells.filter(d=>d!=null).length;s.message=left?`Clear path! ${left} ${left===1?'arrow':'arrows'} left.`:'Every arrow found a way out!';return true;}
+      s.blocked=[i,path.blocker];s.message=`The × marks the arrow blocking this exit. Clear it first, then try this arrow again.`;
+    }
+    return false;
+  },
+  motion(before,a,v,after){if(a!=='arrow'||!after)return null;return {game:'arrows',targets:[{selector:`[data-action="arrow"][data-value="${+v}"]`,kind:'exit'},...after.cells.flatMap((d,i)=>d!=null&&arrowFree(after,i)&&!arrowFree(before,i)?[{selector:`[data-action="arrow"][data-value="${i}"]`,kind:'unlock'}]:[])]};},
+  won:s=>s.cells.every(x=>x==null)
+};
 // Replace the old base/solution/sudokuConflict/sudoku block in games/logic.js.
 // Uses existing imports: shuffle, button, range, grids.
 const SUDOKU_ALL = 0x3fe;

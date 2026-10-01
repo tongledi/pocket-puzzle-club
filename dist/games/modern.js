@@ -1,9 +1,86 @@
-import {shuffle,button,range,grids,clone} from './core.js?v=1.6.1';
+import {shuffle,button,range,grids,clone} from './core.js?v=1.7.0';
 export const waterColors=['#de6557','#477ace','#edbd43','#7760a9','#299a84'];
 const waterNames=['Coral','Blue','Gold','Violet','Jade'];
-export const waterWon=s=>s.tubes.every(t=>!t.length||t.length===4&&t.every(c=>c===t[0]));
-export function pour(s,a,b){let from=s.tubes[a],to=s.tubes[b];if(a===b||!from?.length||!to||to.length===4||to.length&&to.at(-1)!==from.at(-1))return false;let c=from.at(-1),n=0;while(n<from.length&&from[from.length-1-n]===c)n++;n=Math.min(n,4-to.length);to.push(...from.splice(from.length-n,n));s.selected=null;s.hintTarget=null;return true;}
-export const water={id:'water',title:'Water Sort',subtitle:'A satisfying splash of order.',tag:'Modern · Sort the colours',rules:'Tap a tube, then another tube to pour. The top colour can pour only onto the same colour or into an empty tube. A tube holds four drops. Fill each tube with a single colour, leaving two empty. Every starting puzzle is solvable. Symbols help distinguish the colours.',create(){let s={tubes:range(5).map(c=>[c,c,c,c]).concat([[],[]]),selected:null,message:'',path:[]};for(let k=0;k<65;k++){let options=[];for(let a=0;a<7;a++)for(let b=0;b<7;b++){let from=s.tubes[a],to=s.tubes[b];if(a!==b&&from.length&&to.length<4&&(to.length===0||to.at(-1)!==from.at(-1))&&(from.length===1||from.at(-2)===from.at(-1)))options.push([a,b]);}if(!options.length)break;let [a,b]=options[Math.random()*options.length|0];s.tubes[b].push(s.tubes[a].pop());s.path.unshift([b,a]);}return s;},view(s){const symbols=['●','◆','★','✿','▲'];return `<div class="tubes">${s.tubes.map((t,i)=>button(`<span class="tube-glass">${range(4).reverse().map(n=>`<span class="drop ${t[n]==null?'air':''}" style="--liquid:${waterColors[t[n]]||'transparent'}">${t[n]==null?'':symbols[t[n]]}</span>`).join('')}</span><span class="tube-label">${i+1}</span>`,'tube',i,`tube ${s.selected===i?'selected':''} ${s.hintTarget===i?'hint-destination':''}`,`aria-label="Tube ${i+1}: ${t.length?t.map(c=>waterNames[c]).join(', ')+' from bottom to top':'empty'}"`)).join('')}</div>`;},action(s,a,v){if(a==='hint'){let pair=s.path?.[0];if(pair){s.selected=pair[0];s.hintTarget=pair[1];s.message=`Pour tube ${pair[0]+1} into tube ${pair[1]+1}.`;return false;}for(let i=0;i<7;i++)for(let j=0;j<7;j++){if(s.tubes[i].length&&!(s.tubes[i].every(c=>c===s.tubes[i][0])&&!s.tubes[j].length)){let temp=clone(s);if(pour(temp,i,j)){s.selected=i;s.hintTarget=j;s.message=`A legal move: tube ${i+1} into tube ${j+1}. This is not a guaranteed solution.`;return false;}}}s.message='No useful pour found. Try Undo or start a new puzzle.';return false;}if(a==='tube'){let i=+v;if(!Number.isInteger(i)||i<0||i>=s.tubes.length)return false;if(s.selected==null){if(s.tubes[i].length)s.selected=i;s.hintTarget=null;s.message=s.tubes[i].length?'Now choose an empty tube or a matching top colour.':'Choose a tube with water first.';return false;}if(s.selected===i){s.selected=null;s.hintTarget=null;s.message='Choose a tube to pour from.';return false;}let from=s.selected;if(pour(s,from,i)){if(s.path?.[0]?.[0]===from&&s.path[0][1]===i)s.path.shift();else s.path=[];s.message=`Poured tube ${from+1} into tube ${i+1}.`;return true;}s.message='That pour is blocked. Keep the selected tube and choose a matching colour or an empty tube.';return false;}return false;},won:waterWon};
+const waterSymbols=['●','◆','★','✿','▲'];
+const tubeComplete=t=>t.length===4&&t.every(c=>c===t[0]);
+export const waterWon=s=>s.tubes.every(t=>!t.length||tubeComplete(t));
+// This pure plan is the single source for legal highlights, pours and effects.
+export function waterPourPlan(s,a,b){
+  const from=s.tubes[a],to=s.tubes[b];
+  if(!Number.isInteger(a)||!Number.isInteger(b)||a===b||!from?.length||!to||to.length>=4||to.length&&to.at(-1)!==from.at(-1))return null;
+  const color=from.at(-1);let count=0;
+  while(count<from.length&&from[from.length-1-count]===color)count++;
+  return {from:a,to:b,color,count:Math.min(count,4-to.length)};
+}
+export function pour(s,a,b){const p=waterPourPlan(s,a,b);if(!p)return false;s.tubes[b].push(...s.tubes[a].splice(-p.count));s.selected=null;s.hintTarget=null;return true;}
+function waterOptions(s){let out=[];for(let a=0;a<s.tubes.length;a++)for(let b=0;b<s.tubes.length;b++){const p=waterPourPlan(s,a,b);if(p&&!(s.tubes[a].every(c=>c===s.tubes[a][0])&&!s.tubes[b].length))out.push(p);}return out;}
+function savedWaterRoute(s){
+  if(!Array.isArray(s.path)||!s.path.length)return null;
+  const copy={tubes:s.tubes.map(t=>t.slice())};
+  for(const pair of s.path)if(!Array.isArray(pair)||pair.length!==2||!pour(copy,...pair))return null;
+  return waterWon(copy)?s.path.map(p=>p.slice()):null;
+}
+// Symmetric empty/uniform-tube moves add no new position. A capped search must
+// distinguish "not solved yet" from proof that no route exists.
+export function waterSolve(s,{maxNodes=10000,maxMs=100,maxDepth=128}={}){
+  const started=Date.now(),seen=new Set();let nodes=0,limited=false;
+  function visit(tubes,depth=0){
+    if(waterWon({tubes}))return [];
+    if(depth>=maxDepth||++nodes>maxNodes||Date.now()-started>maxMs){limited=true;return null;}
+    const key=tubes.map(t=>t.join('')).sort().join('|');if(seen.has(key))return null;seen.add(key);
+    const options=waterOptions({tubes}).sort((a,b)=>(Number(!!tubes[b.to].length)*8+b.count)-(Number(!!tubes[a.to].length)*8+a.count));
+    for(const p of options){const copy={tubes:tubes.map(t=>t.slice())};pour(copy,p.from,p.to);const rest=visit(copy.tubes,depth+1);if(rest)return [[p.from,p.to],...rest];if(limited)return null;}
+    return null;
+  }
+  const path=visit(s.tubes);return {status:path?'solved':limited?'limit':'blocked',path,nodes};
+}
+export const water={
+  id:'water',title:'Water Sort',subtitle:'A satisfying splash of order.',tag:'Modern · Sort the colours',
+  rules:'Tap a tube, then a marked destination to pour its top matching drops. The top colour can pour only onto the same colour or into an empty tube, up to four drops per tube. Fill five tubes with one colour each, leaving two empty. Every starting puzzle has a legal solution. Hints verify a full route when possible and say when the search is inconclusive. Tap a selected tube again to cancel. Symbols help distinguish the colours.',
+  create(){
+    let s={tubes:range(5).map(c=>[c,c,c,c]).concat([[],[]]),selected:null,message:'',path:[]};
+    // Each reverse step moves one drop onto a different colour or empty tube,
+    // leaving the same colour below. Unwinding is exactly one legal full pour.
+    for(let k=0;k<65;k++){let options=[];for(let a=0;a<7;a++)for(let b=0;b<7;b++){let from=s.tubes[a],to=s.tubes[b];if(a!==b&&from.length&&to.length<4&&(to.length===0||to.at(-1)!==from.at(-1))&&(from.length===1||from.at(-2)===from.at(-1)))options.push([a,b]);}if(!options.length)break;let [a,b]=options[Math.random()*options.length|0];s.tubes[b].push(s.tubes[a].pop());s.path.unshift([b,a]);}return s;
+  },
+  view(s){
+    const selected=Number.isInteger(s.selected)&&s.tubes[s.selected]?.length?s.selected:null,complete=s.tubes.filter(tubeComplete).length;
+    return `<div class="puzzle-goal"><strong>${complete} / 5 colours sorted</strong><span>One colour per full tube</span></div><div class="tubes">${s.tubes.map((t,i)=>{
+      const plan=selected==null?null:waterPourPlan(s,selected,i),chosen=selected===i,done=tubeComplete(t),status=chosen?'Selected':plan?`Pour ${plan.count}`:done?'✓ Sorted':'';
+      return button(`<span class="tube-glass">${range(4).reverse().map(n=>`<span class="drop ${t[n]==null?'air':''}" style="--liquid:${waterColors[t[n]]||'transparent'}">${t[n]==null?'':waterSymbols[t[n]]}</span>`).join('')}</span><span class="tube-label">${i+1}<small>${status||'&nbsp;'}</small></span>`,'tube',i,`tube ${chosen?'selected':''} ${plan?'pour-destination':''} ${done?'sorted-tube':''} ${s.hintTarget===i&&plan?'hint-destination':''}`,`aria-pressed="${chosen}" aria-label="Tube ${i+1}: ${t.length?t.map(c=>waterNames[c]).join(', ')+' from bottom to top':'empty'}${chosen?', selected':plan?`, pour ${plan.count} ${waterNames[plan.color]} drops here`:done?', sorted':''}"`);
+    }).join('')}</div>`;
+  },
+  action(s,a,v){
+    if(a==='hint'){
+      s.selected=null;s.hintTarget=null;
+      if(waterWon(s)){s.message='All five colours sorted!';return false;}
+      const saved=savedWaterRoute(s),result=saved?{status:'solved',path:saved}:waterSolve(s);
+      if(result.status==='solved'){
+        s.path=result.path;const [from,to]=s.path[0];s.selected=from;s.hintTarget=to;s.message=`Pour tube ${from+1} into tube ${to+1}. This starts a verified route to finish.`;
+      }else if(result.status==='blocked')s.message='This position has no complete solution. Undo one or more pours, or restart this puzzle.';
+      else {const p=waterOptions(s)[0];if(p){s.selected=p.from;s.hintTarget=p.to;s.message=`A legal move: tube ${p.from+1} into tube ${p.to+1}. The search could not verify a full solution; you may need Undo.`;}else s.message='No useful pour found. Try Undo or restart this puzzle.';}
+      return false;
+    }
+    if(a==='tube'){
+      const i=v===''?NaN:+v;if(!Number.isInteger(i)||i<0||i>=s.tubes.length)return false;
+      if(!Number.isInteger(s.selected)||!s.tubes[s.selected]?.length)s.selected=null;
+      if(s.selected==null){
+        if(s.tubes[i].length)s.selected=i;s.hintTarget=null;
+        s.message=s.tubes[i].length?s.tubes.some((_,j)=>waterPourPlan(s,i,j))?`Tube ${i+1} selected. Choose a marked destination, or tap it again to cancel.`:`Tube ${i+1} has no legal destination. Tap it again to choose another tube.`:'Choose a tube with water first.';return false;
+      }
+      if(s.selected===i){s.selected=null;s.hintTarget=null;s.message='Selection cleared. Choose a tube to pour from.';return false;}
+      const from=s.selected,plan=waterPourPlan(s,from,i);
+      if(plan&&pour(s,from,i)){
+        if(s.path?.[0]?.[0]===from&&s.path[0][1]===i)s.path.shift();else s.path=[];
+        s.message=`Poured ${plan.count} ${waterNames[plan.color]} ${plan.count===1?'drop':'drops'} from tube ${from+1} into tube ${i+1}.${tubeComplete(s.tubes[i])?' A colour sorted!':''}${!waterWon(s)&&!waterOptions(s).length?' No useful pours remain. Undo or restart.':''}`;return true;
+      }
+      s.message=s.tubes[i].length===4?`Tube ${i+1} is full. Tube ${from+1} is still selected; choose a marked destination.`:`The top colours do not match. Tube ${from+1} is still selected; choose a marked destination.`;return false;
+    }
+    return false;
+  },
+  motion(s,a,v){const p=a==='tube'?waterPourPlan(s,s.selected,v===''?NaN:+v):null;return p?{game:'water',targets:[{selector:`[data-action="tube"][data-value="${p.to}"] .tube-glass`,kind:'pour'}]}:null;},
+  won:waterWon
+};
 const shapes=[[[0,0]],[[0,0],[1,0]],[[0,0],[1,0],[2,0]],[[0,0],[0,1],[0,2]],[[0,0],[1,0],[0,1],[1,1]],[[0,0],[0,1],[1,1]],[[0,0],[1,0],[2,0],[1,1]],[[0,0],[1,0],[2,0],[3,0]],[[0,0],[0,1],[0,2],[1,2]]];
 const pieces=()=>range(3).map(()=>clone(shapes[Math.random()*shapes.length|0]));
 export function canPlace(s,p,i){return Number.isInteger(i)&&i>=0&&i<64&&Array.isArray(p)&&p.length>0&&p.every(([x,y])=>i%8+x<8&&(i/8|0)+y<8&&!s.cells[i+y*8+x]);}
