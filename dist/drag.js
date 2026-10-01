@@ -1,5 +1,5 @@
-import { solitaireMove } from './games/classics.js?v=1.5.3';
-import { blocks, canPlace } from './games/modern.js?v=1.5.3';
+import { solitaireMove } from './games/classics.js?v=1.6.0';
+import { blocks, canPlace, blockPlacement } from './games/modern.js?v=1.6.0';
 
 // UI gestures stay transient. Only this controller action changes a round.
 // Call AFTER the controller's storage/dialog/pause/win guards and BEFORE its
@@ -68,7 +68,7 @@ export function installDragControls({ root, getContext, dispatch }) {
   }
   function feedback(message) {
     const status = root.querySelector('.game-feedback');
-    if (status) status.textContent = message;
+    if (status && status.textContent !== message) status.textContent = message;
   }
   function clearMarks(d) {
     for (const [element, name] of d.marks) element.classList.remove(name);
@@ -214,19 +214,24 @@ export function installDragControls({ root, getContext, dispatch }) {
     const target = d.gameId === 'solitaire' ? solitaireTarget(point) :
       point && root.contains(point) && point.closest('.block-board') ? blockTarget(d, event.clientX, event.clientY) : null;
     clearMarks(d); d.target = null;
-    if (!target) return;
+    if (!target) { feedback('Move over a destination, or release to cancel.'); return; }
     if (d.gameId === 'solitaire') {
       const valid = canDropSolitaire(d.state, d.from, target.to);
       mark(d, target.el, valid ? 'drag-destination-valid' : 'drag-destination-invalid');
       if (valid) d.target = { to: target.to };
+      feedback(valid ? 'Release to move. Undo is available.' : 'That destination is not legal. Release to cancel.');
     } else {
-      const valid = canPlace(d.state, d.state.pieces[d.piece], target.anchor);
+      const plan = blockPlacement(d.state, d.state.pieces[d.piece], target.anchor), valid = !!plan;
       for (const [x, y] of d.state.pieces[d.piece]) {
         const column = target.column - d.grabX + x, row = target.row - d.grabY + y;
         if (column >= 0 && column < 8 && row >= 0 && row < 8)
           mark(d, target.cells[row * 8 + column], valid ? 'drag-cell-valid' : 'drag-cell-invalid');
       }
-      if (valid) d.target = { anchor: target.anchor };
+      if (valid) {
+        d.target = { anchor: target.anchor };
+        for (const i of plan.cleared) mark(d, target.cells[i], 'drag-clear-preview');
+      }
+      feedback(valid ? `Release to place · +${plan.points} points${plan.lines ? ` · ${plan.lines} ${plan.lines === 1 ? 'line' : 'lines'} clear` : ''}` : 'This overlaps or goes off the board. Release to cancel.');
     }
   }
   function move(event) {

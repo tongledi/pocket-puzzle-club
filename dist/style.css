@@ -90,8 +90,8 @@ html{scroll-behavior:auto}.play-surface{overflow:hidden}.game-toolbar button,.ga
 @media(prefers-reduced-motion:reduce) { .puzzle-drag-ghost { transition:none; } }
 /* A previous click-preview remains in state for cancellation/Undo, but does not
    compete with the live dragged footprint. */
-.puzzle-dragging .block-cell:not(.drag-cell-valid):not(.drag-cell-invalid) { background:#f9f6ed; box-shadow:none; color:transparent; }
-.puzzle-dragging .block-cell.filled:not(.drag-cell-valid):not(.drag-cell-invalid) { background:#779486; box-shadow:inset 0 -3px 0 #5c7c6c; }
+.puzzle-dragging .block-cell:not(.drag-cell-valid):not(.drag-cell-invalid):not(.drag-clear-preview) { background:#f9f6ed; box-shadow:none; color:transparent; }
+.puzzle-dragging .block-cell.filled:not(.drag-cell-valid):not(.drag-cell-invalid):not(.drag-clear-preview) { background:#779486; box-shadow:inset 0 -3px 0 #5c7c6c; }
 
 /* Solitaire reference table — an immersive game surface, not an embedded panel. */
 .solitaire-room{--felt:#153e34;--felt-light:#275c49;--table-ink:#f7eedb;--table-muted:#b9c9bd;--brass:#d4b674;--card-height:clamp(116px,18.8vh,156px);--stack-step:clamp(23px,3.7vh,30px);--table-gap:clamp(10px,1.45vw,20px);height:100svh;min-height:520px;display:flex;flex-direction:column;overflow:hidden;color:var(--table-ink);background:radial-gradient(ellipse at 50% 38%,#2c624e 0%,#1c493c 48%,#10362e 100%);position:relative}
@@ -166,3 +166,24 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 /* Override legacy .confirm-dialog > div action-row flex for readable guide flow. */
 .scene-dialog>.install-guide{display:block}
 .scene-dialog .install-steps{padding-left:24px;margin:18px 0;color:#3e5940;font-size:16px;line-height:1.6}.install-steps li+li{margin-top:12px}.scene-dialog .install-guide>.menu-primary{width:100%;margin:20px 0}.scene-dialog .install-guide .settings-note{margin-bottom:0}@media(max-width:700px){.scene-dialog .install-steps{font-size:15px}}
+
+/* Gameplay refinement 1.6: legal choices and results, without covering the board. */
+.solitaire-room .legal-destination{position:relative;outline:2px solid #d4cf8c;outline-offset:4px;border-radius:7px}
+.solitaire-room .legal-destination:after{content:'↓';position:absolute;right:3px;top:-20px;color:#f1df9b;font-size:17px;font-weight:700;line-height:1;pointer-events:none}
+.solitaire-room .legal-destination .card-slot{color:#d8cf98}
+.puzzle-dragging .legal-destination{outline-color:transparent}
+.puzzle-dragging .legal-destination:after{display:none}
+.block-cell.clear-preview,.block-cell.drag-clear-preview{box-shadow:inset 0 0 0 3px #bb9140;background:#e4d6a9}
+.block-cell.ghost-valid.clear-preview{background:#c0cf9b;box-shadow:inset 0 0 0 3px #bb9140}
+.block-piece.no-space{opacity:.65}
+.piece-no-space{display:block;font-size:10px;color:#765f42;margin-top:5px}
+.placement-summary{display:block;min-height:18px;font-size:12px;line-height:1.5;color:#6b6545;margin-top:8px}
+.score-current{display:inline-block}
+.block-result{margin-top:18px;border-top:1px solid #d2c7a4;padding-top:19px}
+.block-result>p{font-size:14px;line-height:1.5;margin:8px 0 15px}
+.block-result .result-replay{margin:10px auto 0;display:block;font-size:13px;color:#596b4c}
+@media(max-width:540px){.solitaire-room .legal-destination{outline-offset:2px}.solitaire-room .legal-destination:after{top:-17px;font-size:15px}.placement-summary{font-size:12px}.piece-no-space{font-size:9px}}
+
+.puzzle-dragging .block-cell.drag-cell-valid{background:#b4cead;box-shadow:inset 0 0 0 3px #55794a}
+.puzzle-dragging .block-cell.drag-clear-preview{background:#e4d6a9;box-shadow:inset 0 0 0 3px #bb9140}
+.puzzle-dragging .block-cell.drag-cell-invalid{background:#e8b6a2;box-shadow:inset 0 0 0 3px #a55e46}
