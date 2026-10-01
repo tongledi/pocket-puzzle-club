@@ -21,10 +21,10 @@ const source = fs.readFileSync(new URL('../dist/app.js', import.meta.url), 'utf8
 `;
 function boot({ store = new Map(), hash = '', search = '' } = {}) {
   let html = '', time = 0, focused = true, canAccessStorage = true, focusedSelector;
-  const docEvents = {}, winEvents = {}, intervals = [], pushes = [];
+  const docEvents = {}, winEvents = {}, intervals = [], pushes = [], renders = [];
   const element = { dataset: {}, focus() {} };
   const app = {
-    get innerHTML() { return html; }, set innerHTML(value) { html = value; },
+    get innerHTML() { return html; }, set innerHTML(value) { html = value; renders.push(value); },
     addEventListener() {}, querySelectorAll: () => [],
     querySelector(selector) { return { dataset: {}, focus() { focusedSelector = selector; } }; }
   };
@@ -43,7 +43,7 @@ function boot({ store = new Map(), hash = '', search = '' } = {}) {
     setInterval: fn => intervals.push(fn)
   };
   vm.createContext(ctx); vm.runInContext(source, ctx);
-  return { ctx, app, store, docEvents, winEvents, pushes,
+  return { ctx, app, store, docEvents, winEvents, pushes, renders,
     advance: ms => time += ms, tick: () => intervals[0](), focus: value => focused = value,
     access: value => canAccessStorage = value, focusedSelector: () => focusedSelector };
 }
@@ -343,6 +343,61 @@ test('settings rerenders retain focus inside the dialog rather than matching bac
   assert.equal(t.ctx.document.activeElement, dialog);
   assert.equal(t.ctx.inspect().settingsOpen, true); modalMarkup(t, 'settings-title');
   assert.equal(stringify(state(t)), before);
+});
+
+test('only explicit game entry and Home navigation request scene-entry motion', () => {
+  const t = boot();
+  for (const id of ids) {
+    open(t, id);
+    assert.match(t.app.innerHTML, /class="app-scene scene-enter"/, id + ' entry animates');
+    t.ctx.handle('settings');
+    assert.doesNotMatch(t.app.innerHTML, /class="app-scene scene-enter"/, 'opening a dialog does not replay navigation');
+    t.ctx.handle('settings');
+    assert.doesNotMatch(t.app.innerHTML, /class="app-scene scene-enter"/, 'closing a dialog does not replay navigation');
+    t.ctx.handle('home');
+    assert.match(t.app.innerHTML, /class="app-scene scene-enter"/, id + ' Back animates the menu');
+    t.winEvents.storage({ key: KEY });
+    assert.doesNotMatch(t.app.innerHTML, /class="app-scene scene-enter"/, 'an idle menu storage rerender stays still');
+  }
+});
+
+test('cross-tab storage notifications reconcile menu and game data without replaying scene-entry motion', () => {
+  for (const search of ['', '?qa=1']) {
+    const saveKey = search ? 'pocket-puzzle-qa-v1' : KEY;
+    const store = new Map(), source = boot({ store, search }), menu = boot({ store, search });
+    open(source, 'solitaire'); source.ctx.handle('stock');
+    menu.renders.length = 0; menu.winEvents.storage({ key: saveKey });
+    assert.equal(state(menu, 'solitaire').moves, 1); assert.ok(menu.renders.length > 0);
+    for (const html of menu.renders) assert.doesNotMatch(html, /class="app-scene scene-enter"/);
+    source.ctx.handle('favorite', 'water'); menu.renders.length = 0;
+    menu.winEvents.storage({ key: saveKey + '-favorites' }); menu.winEvents.storage({ key: null });
+    assert.deepEqual([...menu.ctx.inspect().favorites], ['water']); assert.ok(menu.renders.length > 0);
+    for (const html of menu.renders) assert.doesNotMatch(html, /class="app-scene scene-enter"/);
+    open(menu, 'solitaire'); assert.match(menu.app.innerHTML, /class="app-scene scene-enter"/);
+    source.ctx.handle('new'); source.ctx.handle('confirm'); menu.renders.length = 0;
+    menu.winEvents.storage({ key: saveKey });
+    assert.equal(state(menu).runId, state(source).runId); assert.equal(state(menu).moves, 0);
+    assert.ok(menu.renders.length > 0, 'changed current round must actually rerender');
+    for (const html of menu.renders) assert.doesNotMatch(html, /class="app-scene scene-enter"/);
+  }
+});
+
+test('periodic sync adopts remote progress without generating scene-entry motion', () => {
+  for (const search of ['', '?qa=1']) {
+    const store = new Map(), source = boot({ store, search }); open(source, 'solitaire');
+    const current = boot({ store, search, hash: '#solitaire' });
+    assert.match(current.app.innerHTML, /class="app-scene scene-enter"/, 'deep-link entry still animates');
+    source.ctx.handle('stock'); current.renders.length = 0; current.tick();
+    assert.equal(state(current).moves, 1); assert.equal(stringify(state(current).state), stringify(state(source).state));
+    assert.ok(current.renders.length > 0, 'timer sync must actually rerender adopted progress');
+    for (const html of current.renders) assert.doesNotMatch(html, /class="app-scene scene-enter"/);
+    source.advance(1000); source.tick(); current.renders.length = 0; current.tick();
+    assert.equal(state(current).activeMs, 1000, 'timer-only changes are still reconciled');
+    for (const html of current.renders) assert.doesNotMatch(html, /class="app-scene scene-enter"/);
+    current.advance(1000); current.tick();
+    assert.equal(state(current).activeMs, 2000);
+    for (const html of current.renders) assert.doesNotMatch(html, /class="app-scene scene-enter"/);
+  }
 });
 
 test('remote round replacement closes stale overlays before accepting a new action', () => {
