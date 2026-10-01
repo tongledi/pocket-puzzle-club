@@ -1,6 +1,6 @@
-# Pocket Puzzle Club — project preview 1.1
+# Pocket Puzzle Club — project preview 1.3
 
-English-first, mobile-responsive casual puzzle collection. Working title only; no trademark clearance or domain purchase. Static original DOM/CSS implementations with separate pure rule modules and a shared controller. No packages, account system, ads, purchases, live AI, remote fonts, tracking SDKs or external analytics calls. Silent by design. This checkout is hosting-independent.
+English-first, mobile-responsive casual puzzle collection. Working title only; no trademark clearance or domain purchase. Static original DOM/CSS implementations with separate pure rule modules and a shared controller. No packages, account system, ads, purchases, live AI, remote fonts, tracking SDKs or external analytics calls. Solitaire sound is optional and off by default; all other games are silent. This checkout is hosting-independent.
 
 ## Local development
 
@@ -35,7 +35,7 @@ Browser-local save schema 1 includes current state, initial board, history, time
 
 ## Accessibility and layout
 
-System serif/sans typography, high-contrast controls, colour-independent liquid symbols, keyboard-focus styles, labelled cells, status announcements, reduced-motion support, modal focus loop, mobile collapsible instructions. Responsive breakpoints at 1050/800/480px. Dense Sudoku/Word Search/playing-card controls are smaller than 44px on small screens; real-device usability and screen-reader tests are outstanding. All sounds are off; there is no sound toggle because no sound is implemented.
+System serif/sans typography, high-contrast controls, colour-independent liquid symbols, keyboard-focus styles, labelled cells, status announcements, reduced-motion support, modal focus loop, mobile collapsible instructions. Responsive breakpoints at 1050/800/480px. Dense Sudoku/Word Search/playing-card controls are smaller than 44px on small screens; real-device usability and screen-reader tests are outstanding. Solitaire includes low-volume synthesized move, foundation, deal and completion cues. Sound starts off, is enabled only by an explicit toggle, and is saved separately from round data. Other games remain silent. Card movement/deal/flip animations respect reduced-motion preferences.
 
 ## Verification
 
@@ -44,7 +44,7 @@ Run `npm test`. No install or build is needed; `dist/` is served directly.
 - 24 rule suites passed: 500 deck-conservation deals; legal Klondike sequence/foundation moves; 500 Mahjong complete generated rounds; 1,000 Water Sort generated solutions; 100 independently scored block runs; 500 sliding paths plus detours; 1,000 arrow boards; 100 independent Sudoku uniqueness checks; 500 word-search boards; 32,000 randomized UI-valid actions. Includes invalid moves, exact wins, hints, colour/number conservation and simultaneous line clears. Five malformed-input guards were also repaired; final run has zero warnings.
 - Shared controller VM tests passed for all eight: real first move, exact undo state, pause/input gating, restart original board, resume, new-round reset, reload persistence, denied-storage warning, instrumentation test exclusion and first-valid-move deduplication. VM harness is not browser automation.
 - Static HTML/CSS and JavaScript syntax checked. Preview markup deliberately removes interactive controls from miniature boards to avoid nested buttons.
-- **Browser/mobile visual QA remains pending after the 1.1 corrective pass.** Rule and VM tests do not establish touch behavior or browser layout. Actual desktop/mobile gameplay and screenshots must still be checked.
+- **Browser/mobile visual QA is required for each release.** Rule and VM tests do not establish touch behavior or browser layout. Actual desktop/mobile gameplay and screenshots must still be checked.
 
 This is a gameplay prototype, not a production-readiness claim. Before public launch: real touch/keyboard/screen-reader playtests, visual QA, save-corruption recovery, migration checks, performance/device checks, analytics consent/coverage and jurisdictional review are still needed.
 
@@ -59,3 +59,15 @@ This is a gameplay prototype, not a production-readiness claim. Before public la
 - Meaningful layered Mahjong and varied uniquely solved Sudoku with notes; old saves preserved
 
 Additional tests: 100 new Sudoku puzzles independently checked with 100 distinct answers and clue patterns; 500 upgraded Mahjong layouts and 18,000 legal solution-pair removals; source-level shared-flow regression harness for placement/undo/reload, modal timing, Back navigation and hint cleanup. These are not a substitute for browser playtesting.
+
+## Solitaire reference experience 1.3
+
+- Full-height felt table replaces Solitaire’s editorial sidebar and nested panels; all eight games remain available through All games
+- Compact round HUD, persistent Undo/Hint/Foundation/Restart action tray, and a collapsed How to play/preferences dialog
+- Ivory pip cards with two-way corners, readable ranks, layered card backs, full-sequence drag ghosts and landing feedback
+- Non-mutating move/deal/flip motion with reduced-motion support; synthesized optional sound without downloads or autoplay
+- Completed-deal summary and clear new-deal/replay flow, without currencies or progression
+- Existing schema-1 saves, draw-one rules, undo history, QA isolation and cross-tab reconciliation retained
+- New 16-suite polish regression module covers shell/card identity, help focus and time gating, replay, sound failure handling, animations and storage/controller guards
+
+Automated tests are not a substitute for real-device touch or assistive-technology testing.
