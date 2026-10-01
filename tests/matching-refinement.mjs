@@ -74,7 +74,7 @@ test('Matching feedback has no delayed commit, respects reduced motion and stops
  const u=boot({reducedMotion:true});setRound(u,'water',water.create());u.app.querySelector=t.app.querySelector;u.ctx.animatePuzzle(plan);assert.equal(effects.length,0);
 });
 test('Water label reset overrides legacy selected and hinted pseudo-content',()=>{
- const css=fs.readFileSync(new URL('../dist/style.css',import.meta.url),'utf8');const old=css.indexOf('.tube.hint-destination .tube-label:after'),reset=css.lastIndexOf('.water .tube .tube-label:after{content:none}');assert(reset>old);assert.match(water.view(water.create()),/tube-label/);
+ const css=fs.readFileSync(new URL('../dist/style.css',import.meta.url),'utf8');const old=css.indexOf('.tube.hint-destination .tube-label:after'),reset=css.lastIndexOf('.water .tube .tube-label:after{content:none}');assert(reset>old);assert(css.includes('calc((100svh - 424px)/2)'));assert.match(water.view(water.create()),/tube-label/);
 });
 Math.random=originalRandom;
 console.log(`MATCHING REFINEMENT TESTS PASSED (${checks}; rule/controller simulation, not physical-device testing)`);
