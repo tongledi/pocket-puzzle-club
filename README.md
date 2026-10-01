@@ -186,3 +186,8 @@ Local aggregate tests and independent code review passed. An independent exhaust
 ### Water label layout fix 1.7.1
 
 Live narrow-browser QA found legacy selected/hint pseudo-labels duplicating the new concise tube labels and adding unnecessary height. The scoped CSS reset now wins the legacy specificity; the full cache-version graph advances to 1.7.1. A static regression guard protects this reset. Post-deployment narrow-layout verification is recorded separately.
+
+
+### Narrow Water control fit 1.7.2
+
+The two-row Water board now allocates 16 fewer pixels of glass height per row at the 668px QA viewport, leaving room for a two-line hint and the Undo/Hint/Restart row. The minimum glass height stays 104px; unusually short screens retain normal scrolling. All other layouts and game behavior are unchanged.
