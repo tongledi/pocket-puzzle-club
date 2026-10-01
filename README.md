@@ -1,4 +1,4 @@
-# Pocket Puzzle Club — project preview 1.3
+# Pocket Puzzle Club — project preview 1.4
 
 English-first, mobile-responsive casual puzzle collection. Working title only; no trademark clearance or domain purchase. Static original DOM/CSS implementations with separate pure rule modules and a shared controller. No packages, account system, ads, purchases, live AI, remote fonts, tracking SDKs or external analytics calls. Solitaire sound is optional and off by default; all other games are silent. This checkout is hosting-independent.
 
@@ -29,13 +29,13 @@ GitHub Pages can serve the `main` branch at `/ (root)`. Root `index.html` redire
 
 ## Shared behaviour
 
-Home shows real rendered game-board previews, eight immediate play entries, and the most recent local round. Each game has pause, restart-same-board, new-round confirmation, hints, and up to 120 undo states. Number of moves counts successful player board mutations; hint-applied changes are not player moves. A hinted completion is real but is reported with its hint count. No pretending hints are unassisted wins.
+Home presents eight original game-specific SVG covers, a featured Solitaire table, category browsing, real browser-local favourites, and the latest unfinished local rounds. Favourite preferences are stored separately from schema-1 round data and isolated in QA mode. The seven puzzle rooms share one compact clubhouse header and centred play frame; Solitaire retains its full-height felt table. Entry/Back preserves the lobby collection and scroll position, while Explore all 8 games resets it. Each game has pause, restart-same-board, new-round confirmation, hints, and up to 120 undo states. Number of moves counts successful player board mutations; hint-applied changes are not player moves. A hinted completion is real but is reported with its hint count. No pretending hints are unassisted wins.
 
 Browser-local save schema 1 includes current state, initial board, history, timer, hints, first-play and outcome flags. No cross-device/cloud save. Private/incognito modes or clearing browser data can erase progress; storage failures show a warning. Compatible future releases must retain schema-1 saves or migrate them; product version is not used as a reason to discard compatible saves. Future incompatible migrations must preserve a backup and display a recovery choice. Stable game hash links and browser Back/Forward navigation are supported. Opening/switching games resets the viewport to the top; within-game focus restoration uses preventScroll. Instruction disclosure state survives moves. Active play excludes confirmation-modal waiting time.
 
 ## Accessibility and layout
 
-System serif/sans typography, high-contrast controls, colour-independent liquid symbols, keyboard-focus styles, labelled cells, status announcements, reduced-motion support, modal focus loop, mobile collapsible instructions. Responsive breakpoints at 1050/800/480px. Dense Sudoku/Word Search/playing-card controls are smaller than 44px on small screens; real-device usability and screen-reader tests are outstanding. Solitaire includes low-volume synthesized move, foundation, deal and completion cues. Sound starts off, is enabled only by an explicit toggle, and is saved separately from round data. Other games remain silent. Card movement/deal/flip animations respect reduced-motion preferences.
+System serif/sans typography, high-contrast controls, colour-independent liquid symbols, keyboard-focus styles, labelled cells, status announcements, reduced-motion support, modal focus loop, mobile collapsible instructions. Responsive game and clubhouse layouts, including narrow-phone breakpoints. Dense Sudoku/Word Search/playing-card controls are smaller than 44px on small screens; real-device usability and screen-reader tests are outstanding. Solitaire includes low-volume synthesized move, foundation, deal and completion cues. Sound starts off, is enabled only by an explicit toggle, and is saved separately from round data. Other games remain silent. Card movement/deal/flip animations respect reduced-motion preferences.
 
 ## Verification
 
@@ -71,3 +71,26 @@ Additional tests: 100 new Sudoku puzzles independently checked with 100 distinct
 - New 16-suite polish regression module covers shell/card identity, help focus and time gating, replay, sound failure handling, animations and storage/controller guards
 
 Automated tests are not a substitute for real-device touch or assistive-technology testing.
+
+## Clubhouse release 1.4
+
+- Warm ivory and deep-green game lobby, eight original lightweight SVG covers, category filters and real saved favourites
+- First-play recommendations give way to real recent rounds; move counts, saved badges and Continue actions use local round state
+- Shared compact navigation, clearer entry/back flow and readable secondary copy for all eight games
+- Individual board rules, existing schema-1 saves, Solitaire card table, drag controls and QA isolation retained
+- Favourites are separate browser-local preferences; storage failures do not claim a successful change
+- Nine added VM suites cover lobby state, filters, favourites, multi-tab reconciliation, QA isolation, round preservation, history and failure notices
+- No account, leaderboard, invented activity metrics, ads, payment or tracking added
+
+Source and VM tests verify logic, not physical-device touch or screen-reader usability. Release browser checks must be recorded separately.
+
+### Live browser verification — 2026-10-01
+
+- Runtime commit `27e91e88d6b01ad45dc3fd0a8bcbc1729ba5af4a`; exact-commit Pages deployment succeeded
+- Actual Chromium review at 1180 CSS-pixel desktop width and 388–400 CSS-pixel narrow width using a resized, zoomed browser window
+- All eight cover assets loaded; no horizontal page overflow in the lobby or any room
+- All eight entry/back paths; real category and favourite collections; empty collection and return to all games
+- Water Sort legal pour, reload persistence and exact Undo verified through the UI
+- Narrow Mahjong pause/resume and New game cancellation preserve the board
+- Tests used `?qa=1`, preserving normal player saves; viewport and zoom restored afterward
+- These checks do not establish physical touch-device or screen-reader usability
