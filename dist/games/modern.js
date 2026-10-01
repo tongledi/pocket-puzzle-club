@@ -1,5 +1,5 @@
-import {levelPacks} from './levels.js?v=1.11.2';
-import {shuffle,button,range,grids,clone} from './core.js?v=1.11.2';
+import {levelPacks} from './levels.js?v=1.11.3';
+import {shuffle,button,range,grids,clone} from './core.js?v=1.11.3';
 export const waterColors=['#de6557','#477ace','#edbd43','#7760a9','#299a84'];
 const waterNames=['Coral','Blue','Gold','Violet','Jade'];
 const waterSymbols=['●','◆','★','✿','▲'];
@@ -96,18 +96,26 @@ export function blockPlacement(s,p,i){
   const cleared=range(64).filter(j=>rows.includes(j/8|0)||cols.includes(j%8));
   return {placed,cleared,lines:rows.length+cols.length,points:p.length+(rows.length+cols.length)*10};
 }
+export function blockShapeLabel(p){
+  const width=Math.max(...p.map(c=>c[0]))+1,height=Math.max(...p.map(c=>c[1]))+1;
+  if(p.length===1)return 'single square';
+  if(height===1)return `${p.length}-square horizontal line`;
+  if(width===1)return `${p.length}-square vertical line`;
+  if(p.length===width*height)return `${width} by ${height} ${width===height?'square':'rectangle'}`;
+  return `${p.length} squares, ${width} columns by ${height} rows; `+range(height).map(y=>`row ${y+1} columns ${p.filter(c=>c[1]===y).map(c=>c[0]+1).sort((a,b)=>a-b).join(', ')}`).join('; ');
+}
 export const blocks={
   id:'blocks',title:'Block Garden',subtitle:'Make room for the next good move.',tag:'Modern · High score',
-  rules:'Drag a block onto the board and release to place it. Or select a block, tap a board cell to preview its top-left corner, then tap Place block. With a keyboard, Tab between buttons and press Enter or Space. The whole shape is shown before you commit; gold outlines mark rows and columns that will clear. Complete rows or columns to clear them. Use all three blocks to get a fresh set. Blocks do not rotate. The game ends when none of your remaining blocks fits; Undo lets you try a different choice. Aim for your best score.',
+  rules:'Drag a block onto the board and release to place it. Or select a block, tap a board cell to preview its top-left corner, then tap Place block. With a keyboard, Tab to the board, use arrow keys to preview, then Enter or Space to place. Home and End move to the ends of a row. Tab leaves the board to select a different block. The whole shape is shown before you commit; gold outlines mark rows and columns that will clear. Complete rows or columns to clear them. Use all three blocks to get a fresh set. Blocks do not rotate. The game ends when none of your remaining blocks fits; Undo lets you try a different choice. Aim for your best score.',
   create(){return {cells:Array(64).fill(0),pieces:pieces(),selected:0,score:0,lines:0,message:''};},
   view(s){
-    const piece=s.pieces[s.selected],anchor=s.anchor,plan=blockPlacement(s,piece,anchor),valid=!!plan,cleared=new Set(plan?.cleared||[]);
+    const piece=s.pieces[s.selected],anchor=s.anchor,focusCell=Number.isInteger(s.focusCell)?s.focusCell:Number.isInteger(anchor)?anchor:0,plan=blockPlacement(s,piece,anchor),valid=!!plan,cleared=new Set(plan?.cleared||[]);
     const ghost=new Set(Number.isInteger(anchor)&&piece?piece.filter(([x,y])=>anchor%8+x<8&&(anchor/8|0)+y<8).map(([x,y])=>anchor+y*8+x).filter(i=>i>=0&&i<64):[]);
-    return '<p class="board-instruction">Drag a block onto the board · Or select, preview, place</p>'+grids(s.cells.map((v,i)=>button(anchor===i?'•':'','preview',i,`block-cell ${v?'filled':''} ${ghost.has(i)?valid?'ghost-valid':'ghost-invalid':''} ${cleared.has(i)?'clear-preview':''}`,`aria-label="Row ${(i/8|0)+1}, column ${i%8+1}, ${v?'filled':'empty'}${cleared.has(i)?', will clear':''}"`)),8,'block-board')+
+    return '<p class="board-instruction" id="block-instructions">Drag a block · Or select, preview, place · Keyboard: arrows then Enter</p>'+grids(s.cells.map((v,i)=>button(anchor===i?'•':'','preview',i,`block-cell ${v?'filled':''} ${ghost.has(i)?valid?'ghost-valid':'ghost-invalid':''} ${cleared.has(i)?'clear-preview':''}`,`tabindex="${i===focusCell?0:-1}" aria-label="Row ${(i/8|0)+1}, column ${i%8+1}, ${v?'filled':'empty'}${cleared.has(i)?', will clear':''}"`)),8,'block-board').replace('class="grid-board block-board"','class="grid-board block-board" role="group" aria-label="Block placement board" aria-describedby="block-instructions"')+
       `<div class="piece-tray">${s.pieces.map((p,i)=>{
         if(!p)return '<span class="used-piece" aria-label="Block used">✓</span>';
         const fits=range(64).some(j=>canPlace(s,p,j));
-        return button(`<span class="piece-grid" style="--pw:${Math.max(...p.map(x=>x[0]))+1};--ph:${Math.max(...p.map(x=>x[1]))+1}">${p.map(([x,y])=>`<i style="grid-column:${x+1};grid-row:${y+1}"></i>`).join('')}</span>${fits?'':'<small class="piece-no-space">No space</small>'}`,'piece',i,`block-piece ${s.selected===i?'selected':''} ${fits?'':'no-space'}`,`aria-pressed="${s.selected===i}" aria-label="Select block ${i+1}, ${p.length} squares${fits?'':', no space yet'}"`);
+        return button(`<span class="piece-grid" style="--pw:${Math.max(...p.map(x=>x[0]))+1};--ph:${Math.max(...p.map(x=>x[1]))+1}">${p.map(([x,y])=>`<i style="grid-column:${x+1};grid-row:${y+1}"></i>`).join('')}</span>${fits?'':'<small class="piece-no-space">No space</small>'}`,'piece',i,`block-piece ${s.selected===i?'selected':''} ${fits?'':'no-space'}`,`aria-pressed="${s.selected===i}" aria-label="Select block ${i+1}, ${blockShapeLabel(p)}${fits?'':', no space yet'}"`);
       }).join('')}</div><div class="placement-controls">${button('Place block','place',Number.isInteger(anchor)?anchor:'','primary',valid?'':'disabled')}<span class="placement-summary">${plan?`+${plan.points} points${plan.lines?` · ${plan.lines} ${plan.lines===1?'line':'lines'}`:''}`:'Preview before placing'}</span></div><div class="game-extra"><strong class="score-current">${s.score}</strong> points · ${s.lines} lines cleared · Best ${s.best||0}</div>`;
   },
   action(s,a,v){
