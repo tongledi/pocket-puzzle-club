@@ -23,3 +23,13 @@ for(const reason of ['covered','side-blocked','free']){
 }
 const explained=mahjong.view(statusBoard);ok(explained.includes('both side exits blocked')&&explained.includes('covered by an upper tile')&&explained.includes('mahjong-layer'),'accessible blockers and layer cues');
 console.log('PASS Mahjong distinct blocker explanations agree with legal rules and do not remove tiles');
+
+// Tile faces stay within their logical cells; only same-cell higher layers cover.
+const visualGeometry=mahjong.view(mahjong.create());
+const boxes=[...visualGeometry.matchAll(/left:([\d.]+)%;top:([\d.]+)%;width:([\d.]+)%;height:([\d.]+)%/g)].map(m=>m.slice(1).map(Number));
+const tiles=mahjong.create().tiles;ok(boxes.length===tiles.length,'one face rectangle per tile');
+for(let i=0;i<tiles.length;i++)for(let j=i+1;j<tiles.length;j++){
+ const a=boxes[i],b=boxes[j],overlap=Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])>0&&Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])>0;
+ ok(overlap===(tiles[i].x===tiles[j].x&&tiles[i].y===tiles[j].y),'visual overlap agrees with cover geometry');
+}
+console.log('PASS every rendered Mahjong overlap matches a same-cell layer stack');
