@@ -153,3 +153,8 @@ Live browser QA found that the legacy confirmation action-row CSS also applied t
 - Thirteen added rule/controller/animation suites cover exact simultaneous-clear scoring, malformed legacy selections, invalid moves, repeat input, Undo, replay, pause/dialog cancellation, navigation/reload, reduced motion and save safety. Lifecycle tests now exercise the actual preview-then-place path
 
 Local aggregate tests and independent code review pass. Live browser visual/interaction checks for this release are recorded separately; Node and simulated-pointer tests do not establish real-phone touch or screen-reader behavior.
+
+
+### Narrow gameplay layout correction 1.6.1
+
+Live 1.6.0 QA verified exact Undo/reload, invalid destinations, repeated actions and an actual pointer-drag line clear. It also found the top foundation destination marker clipped by the scroll container and Block Garden's tray/actions extending unnecessarily far below a 400×668 CSS-pixel viewport. The foundation marker is now inset; narrow Block Garden removes duplicate instructions, uses a viewport-bounded square board, and compacts the tray/placement/stats spacing. All buttons remain reachable by ordinary scrolling on unusually short screens. The eight-game lobby is unchanged. This correction requires its own post-deployment visual check.
