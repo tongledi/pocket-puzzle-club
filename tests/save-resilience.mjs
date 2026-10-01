@@ -82,7 +82,7 @@ const firstMove=(t,id)=>{
   const payload=saved(sourceTab),healthy=JSON.stringify(payload.saves.solitaire.state);
   payload.saves.sudoku={state:{},initial:{},history:[],moves:0,activeMs:0};
   const original=JSON.stringify(payload),store=new Map([[KEY,original]]),t=boot({store});
-  assert.match(t.app.innerHTML,/Find your kind of play/);assert.match(t.app.innerHTML,/damaged and backed up/);
+  assert.match(t.app.innerHTML,/id="menu-title"/);assert.match(t.app.innerHTML,/damaged and backed up/);
   assert.equal(JSON.stringify(t.ctx.inspect().saves.solitaire.state),healthy);
   assert.equal(t.ctx.inspect().saves.sudoku,undefined);assert.equal(backups(store)[0].original,original);
   open(t,'solitaire');t.ctx.handle('undo');assert.equal(t.ctx.inspect().saves.solitaire.moves,0);
@@ -105,7 +105,7 @@ const firstMove=(t,id)=>{
   console.log('PASS damaged starting snapshot retains the current playable board and an original backup');
 }
 {
-  const raw='{broken JSON',store=new Map([[KEY,raw]]),t=boot({store});assert.match(t.app.innerHTML,/Find your kind of play/);
+  const raw='{broken JSON',store=new Map([[KEY,raw]]),t=boot({store});assert.match(t.app.innerHTML,/id="menu-title"/);
   t.tick();assert.equal(backups(store)[0].original,raw);
   const future=JSON.stringify({schema:2,saves:{preserve:'future format'}}),newerStore=new Map([[KEY,future]]),newer=boot({store:newerStore});
   open(newer,'water');firstMove(newer,'water');newer.tick();assert.equal(newerStore.get(KEY),future);assert.match(newer.app.innerHTML,/unrecognized format/);
@@ -145,7 +145,7 @@ console.log('PASS all eight normal round saves reload and Undo exactly without f
   normal.store.set('pocket-local-events',JSON.stringify([{event:'normal-data-must-survive'}]));
   normal.store.set(KEY+'-recovery-existing',JSON.stringify({original:'untouched normal backup'}));
   const originals=new Map(normal.store),qa=boot({store:normal.store,search:'?qa=1'});
-  assert.match(qa.app.innerHTML,/QA test session/);assert.equal(Object.keys(qa.ctx.inspect().saves).length,0);
+  assert.match(qa.app.innerHTML,/class="scene-qa">QA<\/span>/);assert.equal(Object.keys(qa.ctx.inspect().saves).length,0);
   for(const g of games){open(qa,g.id);firstMove(qa,g.id);qa.ctx.handle('restart');qa.ctx.handle('confirm');qa.ctx.handle('new');qa.ctx.handle('confirm');}
   qa.winEvents.pagehide();qa.tick();
   assert.equal(Object.keys(JSON.parse(qa.store.get('pocket-puzzle-qa-v1')).saves).length,8);
@@ -159,13 +159,13 @@ console.log('PASS all eight normal round saves reload and Undo exactly without f
 {
   const invalidIds=['constructor','toString','__proto__','valueOf','hasOwnProperty','missing-game',''];
   for(const id of invalidIds){
-    const t=boot({hash:'#'+id});assert.equal(t.ctx.inspect().current,null,id+' startup stays Home');assert.match(t.app.innerHTML,/Find your kind of play/);
+    const t=boot({hash:'#'+id});assert.equal(t.ctx.inspect().current,null,id+' startup stays Home');assert.match(t.app.innerHTML,/id="menu-title"/);
     t.ctx.handle('open',id);assert.equal(t.ctx.inspect().current,null,id+' open is ignored on Home');
     open(t,'solitaire');firstMove(t,'solitaire');const state=JSON.stringify(t.ctx.inspect().saves.solitaire.state);
     t.ctx.handle('open',id);assert.equal(t.ctx.inspect().current,'solitaire');assert.equal(JSON.stringify(t.ctx.inspect().saves.solitaire.state),state);
     t.ctx.handle('new');t.ctx.location.hash='#'+id;t.winEvents.popstate();
     assert.equal(t.ctx.inspect().current,null,id+' history returns Home');assert.equal(t.ctx.inspect().confirmAction,null);
-    assert.equal(JSON.stringify(t.ctx.inspect().saves.solitaire.state),state,id+' never damages valid progress');assert.match(t.app.innerHTML,/Find your kind of play/);
+    assert.equal(JSON.stringify(t.ctx.inspect().saves.solitaire.state),state,id+' never damages valid progress');assert.match(t.app.innerHTML,/id="menu-title"/);
   }
   console.log('PASS invalid and inherited-key routes cannot enter a game, crash startup/history, or damage valid progress');
 }

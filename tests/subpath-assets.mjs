@@ -3,7 +3,14 @@ const root=fileURLToPath(new URL('../dist/',import.meta.url)),html=fs.readFileSy
 for(const base of ['https://preview.invalid/dist/','https://preview.invalid/pocket-puzzle-club/dist/']){for(const ref of [...html.matchAll(/(?:src|href)="([^"#][^"]*)"/g),...app.matchAll(/src="([^"#][^"]*)"/g)].map(x=>x[1]).filter(x=>!x.includes('${'))){assert(!ref.startsWith('/'));const url=new URL(ref,base);assert(url.href.startsWith(base));assert(fs.existsSync(path.join(root,decodeURIComponent(url.pathname.slice(new URL(base).pathname.length)))));}for(const file of ['app.js','drag.js',...fs.readdirSync(path.join(root,'games')).map(x=>'games/'+x)]){for(const [,ref] of fs.readFileSync(path.join(root,file),'utf8').matchAll(/from\s+['"]([^'"]+)['"]/g)){const url=new URL(ref,new URL(file,base));assert(url.href.startsWith(base));assert(fs.existsSync(path.join(root,decodeURIComponent(url.pathname.slice(new URL(base).pathname.length)))));}}}
 assert(fs.readFileSync(new URL('../index.html',import.meta.url),'utf8').includes("new URL('./dist/',location.href)"));assert(fs.existsSync(new URL('../.nojekyll',import.meta.url)));assert(!fs.existsSync(new URL('../.openai',import.meta.url)));console.log('PASS root redirect, .nojekyll and subpath-relative assets/modules');
 
-assert(html.includes('./app.js?v=1.4.0')&&html.includes('./style.css?v=1.4.0'));
+const version=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
+assert(html.includes('./app.js?v='+version)&&html.includes('./style.css?v='+version),'entry assets use the release version');
+assert(app.includes("VERSION='"+version+"'"),'saved release metadata matches package version');
+for(const file of ['app.js','drag.js',...fs.readdirSync(path.join(root,'games')).map(x=>'games/'+x)]){
+ for(const [,ref] of fs.readFileSync(path.join(root,file),'utf8').matchAll(/from\s+['"]([^'"]+)['"]/g)){
+  assert.equal(new URL(ref,'https://preview.invalid/dist/').searchParams.get('v'),version,file+' imports use the same cache-busting version');
+ }
+}
 console.log('PASS versioned app and CSS entries preserve relative asset resolution');
 
 for (const id of ['solitaire','mahjong','water','blocks','arrows','sliding','words','sudoku']) {

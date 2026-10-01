@@ -16,12 +16,12 @@ assert.equal(JSON.parse(t.store.get('pocket-puzzle-qa-v1')).saves.blocks.moves,1
 t.ctx.handle('drag',d);assert.equal(r.moves,1,'a duplicate/stale dispatch cannot count twice');
 t.ctx.handle('undo');assert.equal(r.moves,0);assert.equal(JSON.stringify(r.state),before);
 console.log('PASS controller: one legal drop = one move, exact Undo snapshot, persisted QA save, duplicate drop rejected');
-for(const reason of ['invalid','paused','dialog']){
- r=get(t);const value=gesture(r);if(reason==='invalid')value.anchor=7;if(reason==='paused')t.ctx.handle('pause');if(reason==='dialog')t.ctx.handle('new');
+for(const reason of ['invalid','paused','dialog','help','settings']){
+ r=get(t);const value=gesture(r);if(reason==='invalid')value.anchor=7;if(reason==='paused')t.ctx.handle('pause');if(reason==='dialog')t.ctx.handle('new');if(reason==='help'||reason==='settings')t.ctx.handle(reason);
  const prior=JSON.stringify(r.state),moves=r.moves,history=r.history.length;t.ctx.handle('drag',value);assert.equal(JSON.stringify(r.state),prior,reason);assert.equal(r.moves,moves,reason);assert.equal(r.history.length,history,reason);
- if(reason==='paused')t.ctx.handle('pause');if(reason==='dialog')t.ctx.handle('cancel');
+ if(reason==='paused')t.ctx.handle('pause');if(reason==='dialog')t.ctx.handle('cancel');if(reason==='help'||reason==='settings')t.ctx.handle(reason);
 }
-console.log('PASS controller: invalid, paused and confirmation-modal drops cannot mutate or add history');
+console.log('PASS controller: invalid, paused, help, settings and confirmation-modal drops cannot mutate or add history');
 const store=new Map(),a=boot(store),b=boot(store);a.ctx.handle('open','blocks');a.ctx.persist();b.ctx.handle('open','blocks');const stale=gesture(get(b));a.ctx.handle('new');a.ctx.handle('confirm');const next=JSON.stringify(get(a).state),run=get(a).runId;b.ctx.handle('drag',stale);assert.equal(get(b).runId,run);assert.equal(JSON.stringify(get(b).state),next);assert.equal(get(b).moves,0);assert.match(b.app.innerHTML,/another tab/);
 console.log('PASS controller: remote replacement is synchronized before drag application and rejects the stale gesture');
 console.log('DRAG CONTROLLER TESTS PASSED (VM harness, not browser visual QA)');

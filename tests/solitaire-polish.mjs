@@ -11,7 +11,7 @@ import { commitDrag, installDragControls } from '../dist/drag.js';
 
 const source = fs.readFileSync(new URL('../dist/app.js', import.meta.url), 'utf8')
   .replace(/^import .*;$/gm, '') + `
-  globalThis.inspect = () => ({ saves, recent, current, paused, confirmAction, rulesState, events, helpOpen, soundOn });
+  globalThis.inspect = () => ({ saves, recent, current, paused, confirmAction, rulesState, events, helpOpen, settingsOpen, soundOn });
   globalThis.handle = handle;
   globalThis.persist = persist;
   globalThis.render = render;
@@ -81,7 +81,7 @@ function almostWon() {
     selected: null, message: '' };
 }
 
-test('all eight routes and inert Home previews survive the Solitaire-only shell', () => {
+test('all eight routes and decorative menu covers preserve the Solitaire board', () => {
   const t = boot();
   assert.equal((t.app.innerHTML.match(/class="game-card"/g) || []).length, 8);
   assert.ok(!/<button\b[^>]*>(?:(?!<\/button>)[\s\S])*<button\b/.test(t.app.innerHTML), 'covers must not introduce nested buttons');
@@ -195,17 +195,19 @@ test('Solitaire alone gets compact chrome with rules hidden until requested', ()
   assert.match(t.app.innerHTML, /class="table-footer"/);
   assert.doesNotMatch(t.app.innerHTML, /class="(?:site-header|game-sidebar|game-switcher|table-help-dialog)"/);
   assert.equal(t.ctx.inspect().helpOpen, false);
-  assert.match(t.app.innerHTML, /data-action="help"[^>]*aria-expanded="false"/);
+  assert.match(t.app.innerHTML, /data-action="settings"[^>]*aria-label="Settings"[^>]*aria-haspopup="dialog"/);
+  assert.doesNotMatch(t.app.innerHTML, /How to play/);
   t.ctx.handle('help');
   assert.equal(t.ctx.inspect().helpOpen, true);
-  assert.match(t.app.innerHTML, /class="confirm-dialog table-help-dialog" role="dialog" aria-modal="true"/);
+  assert.match(t.app.innerHTML, /class="confirm-dialog scene-dialog table-help-dialog" role="dialog" aria-modal="true"/);
   assert.match(t.app.innerHTML, /data-action="zoom"/);
   for (const id of gameIds.filter(id => id !== 'solitaire')) {
     t.ctx.handle('open', id);
     assert.equal(t.ctx.inspect().helpOpen, false);
     assert.doesNotMatch(t.app.innerHTML, /class="solitaire-room"/);
     assert.match(t.app.innerHTML, /class="room-header"/);
-    assert.match(t.app.innerHTML, /class="room-bottom"/);
+    assert.match(t.app.innerHTML, /class="game-controls"/);
+    assert.match(t.app.innerHTML, /data-action="settings"/);
   }
 });
 
@@ -241,7 +243,7 @@ test('sound control rerenders keep focus inside the open help dialog', () => {
   const t = boot(); play(t); t.ctx.handle('help');
   const control = () => ({ dataset: { action: 'sound', value: '' }, focus() { t.ctx.document.activeElement = this; } });
   const headerSound = control(), dialogSound = control();
-  t.app.querySelectorAll = selector => selector.includes('table-help-dialog') ? [dialogSound] : selector === '[data-action]' ? [headerSound, dialogSound] : [];
+  t.app.querySelectorAll = selector => selector.includes('scene-dialog') ? [dialogSound] : selector === '[data-action]' ? [headerSound, dialogSound] : [];
   t.ctx.document.activeElement = dialogSound;
   t.ctx.handle('sound');
   assert.equal(t.ctx.document.activeElement, dialogSound, 'focus must not jump to the matching header control behind aria-modal');
@@ -251,7 +253,9 @@ test('sound defaults off, is opt-in and uses a QA-isolated preference', () => {
   const store = new Map([[NORMAL_KEY + '-sound', 'on']]);
   const t = boot({ store }); play(t);
   assert.equal(t.ctx.inspect().soundOn, false);
+  t.ctx.handle('settings');
   assert.match(t.app.innerHTML, /data-action="sound"[^>]*aria-pressed="false"/);
+  t.ctx.handle('settings');
   t.ctx.handle('stock'); assert.deepEqual(t.audio(), { created: 0, tones: 0 });
   const before = JSON.stringify(round(t));
   t.ctx.handle('sound');
