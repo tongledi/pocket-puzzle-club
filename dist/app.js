@@ -1,10 +1,10 @@
-import { commitDrag, installDragControls } from './drag.js?v=1.9.1';
-import {games as classics} from './games/classics.js?v=1.9.1';
-import {games as modern} from './games/modern.js?v=1.9.1';
-import {games as logic} from './games/logic.js?v=1.9.1';
-import {clone,button} from './games/core.js?v=1.9.1';
+import { commitDrag, installDragControls } from './drag.js?v=1.9.2';
+import {games as classics} from './games/classics.js?v=1.9.2';
+import {games as modern} from './games/modern.js?v=1.9.2';
+import {games as logic} from './games/logic.js?v=1.9.2';
+import {clone,button} from './games/core.js?v=1.9.2';
 const games=[...classics,...modern,...logic],byId=Object.fromEntries(games.map(g=>[g.id,g]));
-const app=document.querySelector('#app'),VERSION='1.9.1',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
+const app=document.querySelector('#app'),VERSION='1.9.2',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
 let storageOK=true,saves={},recent=[],bestScores={},current=null,paused=false,confirmAction=null,notice='',rulesState={},lastTick=performance.now();
 let dragControls=null,helpOpen=false,settingsOpen=false,editingFavorites=false;
 let lobbyView=location.hash==='#favorites'?'favorites':'all',lobbyFilter='all',lobbyScroll=0,favoriteWarning='';
@@ -255,7 +255,7 @@ function animateWaterPour(plan){
     const ghost=scene.add(plan.ghost);ghost.classList.add('water-flying');ghost.setAttribute('aria-hidden','true');
     Object.assign(ghost.style,{position:'absolute',left:`${from.left-b.left}px`,top:`${from.top-b.top}px`,width:`${from.width}px`,height:`${from.height}px`,margin:'0',transformOrigin:'50% 0%'});scene.hide(source);
     const sign=to.left+to.width/2>=b.left+b.width/2?1:-1,lipX=sign*from.width/2*Math.cos(65*Math.PI/180),lipY=from.width/2*Math.sin(65*Math.PI/180),tx=to.left+to.width/2-from.left-from.width/2-lipX,ty=to.top-22-from.top-lipY,tilt=`translate(${tx}px,${ty}px) rotate(${sign*65}deg)`,duration=1100;
-    const main=scene.play(ghost,[{transform:'translate(0,0) rotate(0)',offset:0},{transform:'translate(0,-25px) rotate(0)',offset:.18},{transform:tilt,offset:.38},{transform:tilt,offset:.72},{transform:'translate(0,-25px) rotate(0)',offset:.9},{transform:'translate(0,0) rotate(0)',offset:1}],{duration,easing:'ease-in-out'});
+    const main=scene.play(ghost,[{transform:'translate(0,0) rotate(0)',offset:0},{transform:'translate(0,-25px) rotate(0)',offset:.18},{transform:tilt,offset:.38},{transform:tilt,offset:.72},{transform:'translate(0,-25px) rotate(0)',offset:.9},{transform:'translate(0,0) rotate(0)',offset:1}],{duration,easing:'linear'});
     const stream=scene.add(document.createElement('span'));stream.className='water-stream';stream.setAttribute('aria-hidden','true');Object.assign(stream.style,{left:`${to.left+to.width/2-b.left-3}px`,top:`${to.top-b.top-23}px`,height:'30px',background:plan.colorValue});
     scene.play(stream,[{opacity:0,transform:'scaleY(0)',offset:0},{opacity:0,transform:'scaleY(0)',offset:.36},{opacity:1,transform:'scaleY(1)',offset:.41},{opacity:1,transform:'scaleY(1)',offset:.68},{opacity:0,transform:'scaleY(0)',offset:.74},{opacity:0,transform:'scaleY(0)',offset:1}],{duration,easing:'linear'});
     const drops=[...ghost.querySelectorAll('.drop')],filled=[...dest.querySelectorAll('.drop')];
