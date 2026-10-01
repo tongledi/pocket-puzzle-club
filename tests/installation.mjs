@@ -8,6 +8,7 @@ import { games as modern } from '../dist/games/modern.js';
 import { games as logic } from '../dist/games/logic.js';
 import { clone, button } from '../dist/games/core.js';
 import { commitDrag, installDragControls } from '../dist/drag.js';
+const version=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 const source=fs.readFileSync(new URL('../dist/app.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'')+`
   globalThis.handle=handle;globalThis.requestInstall=requestInstall;
   globalThis.inspect=()=>({installed:isInstalled(),platform:installPlatform(),installBusy,installGuideOpen,installStatus,
@@ -112,7 +113,7 @@ await test('manifest stays scoped to each deployment directory and strips QA/que
   const manifest=JSON.parse(fs.readFileSync(new URL('../dist/manifest.webmanifest',import.meta.url),'utf8'));
   assert.equal(manifest.display,'standalone');assert.equal(manifest.prefer_related_applications,false);assert.ok(manifest.name&&manifest.short_name);assert.equal(manifest.lang,'en');
   for(const base of ['https://tongledi.github.io/pocket-puzzle-club/dist/','https://preview.invalid/dist/']){
-    const file=new URL('manifest.webmanifest?v=1.5.2',base);
+    const file=new URL('manifest.webmanifest?v='+version,base);
     for(const field of ['start_url','scope'])assert.equal(new URL(manifest[field],file).href,base,field);
     // Unlike scope/start_url, the spec resolves id against the start URL origin.
     assert.equal(new URL(manifest.id,new URL(base).origin).href,new URL('/pocket-puzzle-club/dist/',base).href);
@@ -125,6 +126,18 @@ await test('PNG icon headers and Apple touch metadata are valid and all icons re
   for(const [name,size] of [['icon-192.png',192],['icon-512.png',512],['apple-touch-icon.png',180]]){
     const bytes=fs.readFileSync(new URL('../dist/icons/'+name,import.meta.url));assert.equal(bytes.subarray(1,4).toString(),'PNG');assert.equal(bytes.readUInt32BE(16),size);assert.equal(bytes.readUInt32BE(20),size);assert.equal(bytes[24],8,'8-bit icons');
   }
-  const html=fs.readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');assert.match(html,/<link rel="manifest" href="\.\/manifest.webmanifest\?v=1\.5\.2">/);assert.match(html,/rel="apple-touch-icon" sizes="180x180"/);assert.match(html,/name="apple-mobile-web-app-capable" content="yes"/);assert.doesNotMatch(source,/serviceWorker\.register|caches\.open/);
+  const html=fs.readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');assert.ok(html.includes('<link rel="manifest" href="./manifest.webmanifest?v='+version+'">'));assert.match(html,/rel="apple-touch-icon" sizes="180x180"/);assert.match(html,/name="apple-mobile-web-app-capable" content="yes"/);assert.doesNotMatch(source,/serviceWorker\.register|caches\.open/);
+});
+await test('install instructions override legacy dialog action-row flex and flow vertically',async()=>{
+  const css=fs.readFileSync(new URL('../dist/style.css',import.meta.url),'utf8');
+  // Source-level regression guard, not a substitute for browser computed-style QA.
+  const generic=css.indexOf('.confirm-dialog>div{display:flex;');
+  const override=css.indexOf('.scene-dialog>.install-guide{display:block}');
+  assert.ok(generic>=0,'legacy action-row rule remains intact for other dialogs');
+  assert.ok(override>generic,'more-specific block override follows the legacy row rule');
+  const t=boot();openSettings(t);await t.ctx.requestInstall();
+  assert.match(t.app.innerHTML,/<div class="install-guide"><p>/);
+  assert.match(t.app.innerHTML,/<ol class="install-steps">/);
+  assert.match(t.app.innerHTML,/<\/div><button[^>]*data-action="install-back"/,'Back stays outside flowing content');
 });
 console.log(`INSTALLATION TESTS PASSED (${checks}; simulated events and static assets, no host installation or physical-device claim)`);
