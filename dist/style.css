@@ -60,3 +60,35 @@ html{scroll-behavior:auto}.play-surface{overflow:hidden}.game-toolbar button,.ga
 .mahjong-tile.raised{border-bottom-width:6px;box-shadow:3px 6px 0 #a89f7c,4px 8px 5px #4a4b3433}
 .mahjong-key{text-align:center;font-size:12px;line-height:1.5;color:var(--muted);margin:0 auto 4px;max-width:440px}
 .preview-inner .mahjong-key,.preview-inner .mahjong-layer{display:none}
+
+/* Pointer drag is scoped to cards and tray pieces. Board/background scrolling,
+   stock buttons, all other games, and keyboard/click controls stay unchanged. */
+.play-surface.solitaire .playing-card:not(.back)[data-action="select"],
+.play-surface.solitaire .playing-card[data-action="foundation"],
+.play-surface.blocks .block-piece {
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:grab;
+}
+.puzzle-dragging .play-surface { cursor:grabbing; }
+.drag-source { opacity:.45; }
+.drag-destination-valid { outline:3px solid var(--green)!important; outline-offset:2px; border-radius:7px; }
+.drag-destination-invalid { outline:2px dashed #a55e46!important; outline-offset:2px; border-radius:7px; }
+.block-cell.drag-cell-valid { background:#b4cead; box-shadow:inset 0 0 0 3px #55794a; }
+.block-cell.drag-cell-invalid { background:#e8b6a2; box-shadow:inset 0 0 0 3px #a55e46; }
+.puzzle-drag-ghost {
+  position:fixed; top:0; left:0; z-index:19; pointer-events:none;
+  opacity:.78; margin:0; will-change:transform;
+  user-select:none; -webkit-user-select:none;
+}
+.puzzle-drag-ghost * { pointer-events:none!important; }
+.puzzle-drag-ghost .drag-card-face { width:100%; height:100%; min-height:0; box-shadow:0 4px 12px #273e3633; }
+.puzzle-drag-ghost .drag-count { position:absolute; right:0; bottom:-14px; padding:3px 5px; border-radius:7px; white-space:nowrap; background:var(--green); color:white; font:11px/1.2 Arial,sans-serif; }
+.puzzle-drag-ghost.drag-piece-outline { opacity:.7; }
+.drag-outline-square { position:absolute; border:2px solid var(--green); border-radius:4px; background:transparent; }
+@media(prefers-reduced-motion:reduce) { .puzzle-drag-ghost { transition:none; } }
+/* A previous click-preview remains in state for cancellation/Undo, but does not
+   compete with the live dragged footprint. */
+.puzzle-dragging .block-cell:not(.drag-cell-valid):not(.drag-cell-invalid) { background:#f9f6ed; box-shadow:none; color:transparent; }
+.puzzle-dragging .block-cell.filled:not(.drag-cell-valid):not(.drag-cell-invalid) { background:#779486; box-shadow:inset 0 -3px 0 #5c7c6c; }

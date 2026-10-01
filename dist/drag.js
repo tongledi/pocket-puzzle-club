@@ -1,0 +1,268 @@
+import { solitaireMove } from './games/classics.js';
+import { blocks, canPlace } from './games/modern.js';
+
+// UI gestures stay transient. Only this controller action changes a round.
+// Call AFTER the controller's storage/dialog/pause/win guards and BEFORE its
+// normal history/move/persist flow. No second, unguarded mutation path exists.
+export function commitDrag(game, round, drop) {
+  if (!drop || game.id !== drop.gameId || round.runId !== drop.runId ||
+      JSON.stringify(round.state) !== drop.expected) return false;
+  const state = round.state;
+  if (game.id === 'solitaire') {
+    if (!validSolitaireSource(state, drop.from) || !/^(t:[0-6]|f:[0-3])$/.test(drop.to)) return false;
+    const changed = solitaireMove(state, drop.from, drop.to);
+    if (changed) state.message = 'Moved. You can undo this move.';
+    return changed;
+  }
+  if (game.id === 'blocks') {
+    if (!Number.isInteger(drop.piece) || drop.piece < 0 || drop.piece > 2 ||
+        !canPlace(state, state.pieces[drop.piece], drop.anchor)) return false;
+    // Validation above precedes selection, so an invalid drop changes nothing.
+    state.selected = drop.piece;
+    return blocks.action(state, 'place', drop.anchor);
+  }
+  return false;
+}
+
+export function solitaireCards(state, from) {
+  if (from === 'w') return state.waste.slice(-1);
+  if (/^f:[0-3]$/.test(from)) return state.foundation[+from[2]].slice(-1);
+  const match = /^t:([0-6]):(\d+)$/.exec(from);
+  return match ? state.tableau[+match[1]].slice(+match[2]) : [];
+}
+export function validSolitaireSource(state, from) {
+  if (typeof from !== 'string') return false;
+  const cards = solitaireCards(state, from);
+  return cards.length > 0 && cards.every((card, i) => card.up && (!i ||
+    cards[i - 1].rank === card.rank + 1 && cards[i - 1].suit % 2 !== card.suit % 2));
+}
+export function canDropSolitaire(state, from, to) {
+  return validSolitaireSource(state, from) && /^(t:[0-6]|f:[0-3])$/.test(to) &&
+    solitaireMove(structuredClone(state), from, to);
+}
+
+// The grabbed square, rather than always the top-left square, follows the pointer.
+export function blockAnchorAt(row, column, grabX = 0, grabY = 0) {
+  const x = column - grabX, y = row - grabY;
+  return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && x < 8 && y >= 0 && y < 8 ? y * 8 + x : null;
+}
+export function movementPassed(startX, startY, x, y, pointerType) {
+  return Math.hypot(x - startX, y - startY) >= (pointerType === 'touch' ? 10 : 6);
+}
+
+export function installDragControls({ root, getContext, dispatch }) {
+  const doc = root.ownerDocument || globalThis.document;
+  const win = doc?.defaultView || globalThis.window;
+  const noop = { cancel() {}, destroy() {} };
+  if (!win?.PointerEvent || !root.addEventListener || !doc?.addEventListener) return noop;
+  let drag = null, suppressClick = false;
+  const listeners = [];
+  function listen(target, type, fn, options) {
+    target.addEventListener(type, fn, options);
+    listeners.push(() => target.removeEventListener(type, fn, options));
+  }
+  function currentMatches(d) {
+    const context = getContext();
+    return context && !context.blocked && context.gameId === d.gameId &&
+      context.runId === d.runId && JSON.stringify(context.state) === d.expected;
+  }
+  function feedback(message) {
+    const status = root.querySelector('.game-feedback');
+    if (status) status.textContent = message;
+  }
+  function clearMarks(d) {
+    for (const [element, name] of d.marks) element.classList.remove(name);
+    d.marks = [];
+  }
+  function mark(d, element, name) {
+    if (!element) return;
+    element.classList.add(name);
+    d.marks.push([element, name]);
+  }
+  function finish(message) {
+    const d = drag;
+    if (!d) return null;
+    drag = null; // Release may synchronously emit lostpointercapture.
+    suppressClick ||= d.active;
+    clearMarks(d);
+    for (const el of d.sources) el.classList.remove('drag-source');
+    root.classList.remove('puzzle-dragging');
+    d.ghost?.remove();
+    try { if (root.hasPointerCapture(d.pointerId)) root.releasePointerCapture(d.pointerId); } catch {}
+    if (message && d.active && currentMatches(d)) feedback(message);
+    return d;
+  }
+  function cancel() { finish('Drag canceled. Your board is unchanged.'); }
+  function sourceFor(event, context) {
+    const el = event.target.closest?.('[data-action]');
+    if (!el || !root.contains(el) || el.disabled || !el.closest('.play-surface')) return null;
+    if (context.gameId === 'solitaire' && el.classList.contains('playing-card')) {
+      const from = el.dataset.action === 'select' ? el.dataset.value :
+        el.dataset.action === 'foundation' ? `f:${el.dataset.value}` : null;
+      if (from && validSolitaireSource(context.state, from)) return { el, from };
+    }
+    if (context.gameId === 'blocks' && el.dataset.action === 'piece') {
+      const piece = Number(el.dataset.value), shape = context.state.pieces[piece];
+      if (!Number.isInteger(piece) || !shape?.length) return null;
+      const squares = [...el.querySelectorAll('.piece-grid i')];
+      let grab = shape[0], distance = Infinity, grabFX = .5, grabFY = .5;
+      squares.forEach((square, index) => {
+        const box = square.getBoundingClientRect();
+        const n = Math.hypot(event.clientX - (box.left + box.width / 2), event.clientY - (box.top + box.height / 2));
+        if (n < distance) { distance = n; grab = shape[index];
+          grabFX = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
+          grabFY = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height));
+        }
+      });
+      return { el, piece, grabX: grab[0], grabY: grab[1], grabFX, grabFY };
+    }
+    return null;
+  }
+  function down(event) {
+    if (drag) { if (event.pointerId !== drag.pointerId) cancel(); return; }
+    suppressClick = false; // A new deliberate press must never be swallowed.
+    if (event.isPrimary === false || event.button !== 0) return;
+    const context = getContext();
+    if (!context || context.blocked) return;
+    const source = sourceFor(event, context);
+    if (!source) return;
+    drag = { ...source, gameId: context.gameId, runId: context.runId,
+      expected: JSON.stringify(context.state), state: structuredClone(context.state),
+      pointerId: event.pointerId, pointerType: event.pointerType,
+      startX: event.clientX, startY: event.clientY, active: false,
+      marks: [], sources: [], ghost: null, target: null };
+    // Do not preventDefault or select anything here: ordinary clicks, taps,
+    // focus, and keyboard activation retain their original behavior.
+  }
+  function begin(d) {
+    d.active = true;
+    try { root.setPointerCapture(d.pointerId); } catch { /* Document listeners remain a fallback. */ }
+    root.classList.add('puzzle-dragging');
+    if (d.gameId === 'solitaire' && d.from.startsWith('t:')) {
+      const [, column, index] = d.from.split(':').map((x, i) => i ? Number(x) : x);
+      d.sources = [...root.querySelectorAll('.tableau .playing-card')].filter(el => {
+        const match = /^t:(\d+):(\d+)$/.exec(el.dataset.value);
+        return match && +match[1] === column && +match[2] >= index;
+      });
+    } else d.sources = [d.el];
+    for (const el of d.sources) el.classList.add('drag-source');
+    const ghost = doc.createElement('div');
+    ghost.className = 'puzzle-drag-ghost';
+    ghost.setAttribute('aria-hidden', 'true');
+    if (d.gameId === 'solitaire') {
+      const box = d.el.getBoundingClientRect();
+      d.offsetX = d.startX - box.left; d.offsetY = d.startY - box.top;
+      ghost.style.width = `${box.width}px`; ghost.style.height = `${box.height}px`;
+      const card = d.el.cloneNode(true);
+      card.removeAttribute('data-action'); card.removeAttribute('data-value');
+      card.removeAttribute('id'); card.tabIndex = -1;
+      card.classList.remove('selected', 'hinted', 'drag-source');
+      card.classList.add('drag-card-face');
+      ghost.append(card);
+      const count = solitaireCards(d.state, d.from).length;
+      if (count > 1) { const badge = doc.createElement('span'); badge.className = 'drag-count'; badge.textContent = `${count} cards`; ghost.append(badge); }
+    } else {
+      // Use board-cell scale and preserve the exact point within the grabbed
+      // square. The outline stays transparent so landing cells remain visible.
+      ghost.classList.add('drag-piece-outline');
+      const cells = [...root.querySelectorAll('.block-board [data-action="preview"]')];
+      const first = cells[0].getBoundingClientRect();
+      const dx = (cells[7].getBoundingClientRect().left - first.left) / 7;
+      const dy = (cells[56].getBoundingClientRect().top - first.top) / 7;
+      const shape = d.state.pieces[d.piece];
+      ghost.style.width = `${Math.max(...shape.map(([x]) => x)) * dx + first.width}px`;
+      ghost.style.height = `${Math.max(...shape.map(([, y]) => y)) * dy + first.height}px`;
+      for (const [x, y] of shape) {
+        const square = doc.createElement('span'); square.className = 'drag-outline-square';
+        Object.assign(square.style, { left: `${x * dx}px`, top: `${y * dy}px`, width: `${first.width}px`, height: `${first.height}px` });
+        ghost.append(square);
+      }
+      d.offsetX = d.grabX * dx + d.grabFX * first.width;
+      d.offsetY = d.grabY * dy + d.grabFY * first.height;
+    }
+    doc.body.append(ghost); d.ghost = ghost;
+  }
+  function solitaireTarget(point) {
+    if (!point || !root.contains(point) || !point.closest('.solitaire-board')) return null;
+    const foundation = point.closest('[data-action="foundation"]');
+    if (foundation) return { to: `f:${foundation.dataset.value}`, el: foundation };
+    const column = point.closest('.card-column');
+    const slot = column?.querySelector('[data-action="column"]');
+    return slot ? { to: `t:${slot.dataset.value}`, el: column } : null;
+  }
+  function blockTarget(d, x, y) {
+    const board = root.querySelector('.block-board');
+    if (!board) return null;
+    const cells = [...board.querySelectorAll('[data-action="preview"]')];
+    if (cells.length !== 64) return null;
+    const first = cells[0].getBoundingClientRect(), last = cells[63].getBoundingClientRect();
+    // Exclude surrounding padding, but tolerate the little gaps between cells.
+    if (x < first.left || x > last.right || y < first.top || y > last.bottom) return null;
+    const dx = (cells[7].getBoundingClientRect().left - first.left) / 7;
+    const dy = (cells[56].getBoundingClientRect().top - first.top) / 7;
+    if (dx <= 0 || dy <= 0) return null;
+    const column = Math.max(0, Math.min(7, Math.round((x - first.left - first.width / 2) / dx)));
+    const row = Math.max(0, Math.min(7, Math.round((y - first.top - first.height / 2) / dy)));
+    return { anchor: blockAnchorAt(row, column, d.grabX, d.grabY), row, column, cells };
+  }
+  function update(d, event) {
+    d.ghost.style.transform = `translate(${event.clientX - d.offsetX}px, ${event.clientY - d.offsetY}px)`;
+    const point = doc.elementFromPoint(event.clientX, event.clientY);
+    const target = d.gameId === 'solitaire' ? solitaireTarget(point) :
+      point && root.contains(point) && point.closest('.block-board') ? blockTarget(d, event.clientX, event.clientY) : null;
+    clearMarks(d); d.target = null;
+    if (!target) return;
+    if (d.gameId === 'solitaire') {
+      const valid = canDropSolitaire(d.state, d.from, target.to);
+      mark(d, target.el, valid ? 'drag-destination-valid' : 'drag-destination-invalid');
+      if (valid) d.target = { to: target.to };
+    } else {
+      const valid = canPlace(d.state, d.state.pieces[d.piece], target.anchor);
+      for (const [x, y] of d.state.pieces[d.piece]) {
+        const column = target.column - d.grabX + x, row = target.row - d.grabY + y;
+        if (column >= 0 && column < 8 && row >= 0 && row < 8)
+          mark(d, target.cells[row * 8 + column], valid ? 'drag-cell-valid' : 'drag-cell-invalid');
+      }
+      if (valid) d.target = { anchor: target.anchor };
+    }
+  }
+  function move(event) {
+    const d = drag;
+    if (!d || event.pointerId !== d.pointerId) return;
+    if (!currentMatches(d) || d.el.isConnected === false) { cancel(); return; }
+    if (!d.active && !movementPassed(d.startX, d.startY, event.clientX, event.clientY, d.pointerType)) return;
+    if (!d.active) begin(d);
+    event.preventDefault(); update(d, event);
+  }
+  function up(event) {
+    const d = drag;
+    if (!d || event.pointerId !== d.pointerId) return;
+    if (!d.active) { finish(); return; }
+    event.preventDefault();
+    if (!currentMatches(d) || d.el.isConnected === false) { cancel(); return; }
+    update(d, event);
+    const drop = d.target;
+    finish(drop ? null : 'That drop does not fit. Your board is unchanged.');
+    if (drop) dispatch('drag', { gameId: d.gameId, runId: d.runId, expected: d.expected,
+      ...(d.gameId === 'solitaire' ? { from: d.from } : { piece: d.piece }), ...drop });
+  }
+  listen(root, 'pointerdown', down);
+  listen(doc, 'pointermove', move, { passive: false });
+  listen(doc, 'pointerup', up, { passive: false });
+  listen(doc, 'pointercancel', event => { if (drag?.pointerId === event.pointerId) cancel(); });
+  listen(root, 'lostpointercapture', event => { if (event.target === root && drag?.pointerId === event.pointerId) cancel(); });
+  listen(root, 'click', event => {
+    if (suppressClick && event.detail !== 0) { suppressClick = false; event.preventDefault(); event.stopImmediatePropagation(); }
+  }, true);
+  listen(doc, 'keydown', event => {
+    if (drag && event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); cancel(); }
+    else if (drag && (event.key === 'Tab' || event.key === 'Enter' || event.key === ' ')) cancel();
+  }, true);
+  listen(root, 'dragstart', event => { if (drag) event.preventDefault(); });
+  listen(doc, 'visibilitychange', () => { if (doc.hidden) cancel(); });
+  listen(doc, 'scroll', cancel, true);
+  listen(win, 'blur', cancel);
+  listen(win, 'pagehide', cancel);
+  listen(win, 'resize', cancel);
+  return { cancel, destroy() { finish(); listeners.forEach(remove => remove()); } };
+}
