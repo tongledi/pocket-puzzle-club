@@ -25,3 +25,25 @@ html{scroll-behavior:auto}.play-surface{overflow:hidden}.game-toolbar button,.ga
 
 .blocking-arrow{background:#ecd2c3!important;box-shadow:inset 0 0 0 2px #a96a51}.word-progress{text-align:center;margin-top:14px;font-size:12px;color:var(--muted)}.preview-inner .word-progress{display:none}
 .saved-layout-note{font-size:12px;line-height:1.5;background:#f0ebd9;padding:10px;border-radius:8px;color:#6e6341;margin-bottom:15px}.preview-inner .saved-layout-note{display:none}.preview-inner .mahjong-board{height:370px!important}.preview-inner .mahjong-tile span{font-size:20px!important}.preview-inner .mahjong-tile span+span{font-size:8px!important}.mahjong .board-wrap{padding-top:6px}.mahjong-tile.blocked{filter:saturate(.45);background:#e7e2cd}.mahjong-tile.free{background:#fff8dc}.mahjong-tile.hinted{box-shadow:0 0 0 3px #b78c36,3px 6px 5px #454b3333}.mahjong-tile.selected{background:#e5edd0}
+
+/* Desktop playtest refinement: keep boards readable and controls beside/below,
+   never floating over the playfield. Small-screen layouts stay unchanged. */
+@media(min-width:1051px){
+  .site-header:has(.back-home){padding-top:14px;padding-bottom:14px}
+  .play-layout{margin-top:20px;margin-bottom:24px}
+  .game-sidebar{padding-top:14px}
+  .play-surface{padding-top:16px;padding-bottom:18px}
+  .game-toolbar{margin-bottom:14px}
+  .game-feedback{margin-top:12px;margin-bottom:8px;min-height:36px}
+  .water .tubes{max-width:none;gap:8px;flex-wrap:nowrap;margin:6px auto}
+  .water .board-wrap{min-height:270px}
+  .blocks .board-wrap{display:grid;grid-template-columns:minmax(0,390px) minmax(140px,170px);gap:10px 20px;justify-content:center;align-items:center;min-height:0}
+  .blocks .board-instruction{grid-column:1/-1;margin:0}
+  .blocks .block-board{grid-column:1;grid-row:2/5;width:100%;margin:0}
+  .blocks .piece-tray{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:4px;min-height:0;width:100%}
+  .blocks .block-piece{min-height:64px;padding:7px}
+  .blocks .used-piece{min-height:64px;display:grid;place-items:center}
+  .blocks .placement-controls{grid-column:2;grid-row:3;margin:0}
+  .blocks .placement-controls button{min-width:0;width:100%;padding-left:8px;padding-right:8px}
+  .blocks .game-extra{grid-column:2;grid-row:4;padding:0;line-height:1.7}
+}
