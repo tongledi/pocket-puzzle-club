@@ -37,10 +37,18 @@ test('Every arrow direction uses first-blocker geometry; failures and exits both
  for(let d=0;d<4;d++){const s={cells:Array(36).fill(null)};s.cells[14]=d;const p=arrows.motion(s,'arrow',14,s);assert.equal(p.blocker,null);const path=arrowPath(s,14);s.cells[path.cells[0]]=0;const blocked=arrows.motion(s,'arrow',14,s);assert.equal(blocked.blocker,path.cells[0]);assert.equal(Math.abs(blocked.dx)+Math.abs(blocked.dy),1);}
  assert.equal(arrows.motion({cells:Array(36).fill(null)},'arrow',0,{}),null);
 });
-test('Water commits once before lift/tilt/stream, gates repeated taps and never saves motion',()=>{
- const t=boot(),r=t.room('water'),[a,b]=r.state.path[0];t.ctx.handle('tube',a);const before=JSON.stringify(r.state.tubes);t.ctx.handle('tube',b);assert.equal(r.moves,1);assert.notEqual(JSON.stringify(r.state.tubes),before);assert(t.ctx.inspect().puzzleMotion);const after=JSON.stringify(r.state);t.ctx.handle('tube',a);t.ctx.handle('hint');assert.equal(JSON.stringify(r.state),after);assert.equal(r.moves,1);
+test('Water commits once, then responds to a new selection or hint by finishing its visual',()=>{
+ const t=boot(),r=t.room('water'),[a,b]=r.state.path[0];t.ctx.handle('tube',a);const before=JSON.stringify(r.state.tubes);t.ctx.handle('tube',b);assert.equal(r.moves,1);assert.notEqual(JSON.stringify(r.state.tubes),before);assert(t.ctx.inspect().puzzleMotion);const after=JSON.stringify(r.state.tubes),scene=t.ctx.inspect().puzzleMotion;
  assert.equal(t.animations[0].options.easing,'linear');assert(t.animations.some(a=>a.frames.some(f=>/rotate\(-?65deg\)/.test(f.transform||''))));assert(t.animations.some(a=>a.el.className==='water-stream'));assert(t.animations.filter(a=>a.frames.some(f=>f.transform==='scaleY(0)')).length>=3);
- assert.doesNotMatch(t.store.get('pocket-puzzle-qa-v1'),/water-flying|water-stream|water-pour|puzzleMotion/);t.ctx.cancelPuzzleMotion();assert.equal(t.ctx.inspect().puzzleMotion,null);assert(t.animations.every(a=>a.canceled));assert.equal(JSON.stringify(r.state),after);
+ t.ctx.handle('tube',b);assert.equal(r.state.selected,b);assert.equal(r.moves,1);assert.equal(JSON.stringify(r.state.tubes),after);assert.equal(t.ctx.inspect().puzzleMotion,null);assert(scene.nodes.every(n=>!n.parent.children.includes(n)));
+ t.ctx.handle('tube',b);assert.equal(r.state.selected,null);assert.equal(r.moves,1);t.ctx.handle('hint');assert.equal(r.hints,1);assert.notEqual(r.state.selected,null);assert.equal(JSON.stringify(r.state.tubes),after);
+ assert.doesNotMatch(t.store.get('pocket-puzzle-qa-v1'),/water-flying|water-stream|water-pour|puzzleMotion/);assert(t.animations.every(a=>a.canceled));
+ const u=boot(),v=u.room('water'),[x,y]=v.state.path[0];u.ctx.handle('tube',x);u.ctx.handle('tube',y);u.ctx.handle('hint');assert.equal(v.hints,1);assert.equal(v.moves,1);assert.equal(u.ctx.inspect().puzzleMotion,null);
+});
+test('Arrow rapid independent exits both commit; repeated blocked taps never mutate the board',()=>{
+ const t=boot(),r=t.room('arrows');r.state={cells:Array(36).fill(null),message:''};r.state.cells[0]=0;r.state.cells[1]=0;r.state.cells[14]=1;
+ t.ctx.handle('arrow',0);const first=t.ctx.inspect().puzzleMotion;t.ctx.handle('arrow',1);assert.equal(r.moves,2);assert.equal(r.state.cells[0],null);assert.equal(r.state.cells[1],null);assert.equal(r.history.length,2);assert(first.done);assert(first.nodes.every(n=>!n.parent.children.includes(n)));assert(t.ctx.inspect().puzzleMotion);
+ const u=boot(),v=u.room('arrows');v.state={cells:Array(36).fill(null),message:''};v.state.cells[12]=1;v.state.cells[15]=0;const before=JSON.stringify(v.state.cells);u.ctx.handle('arrow',12);const blocked=u.ctx.inspect().puzzleMotion;u.ctx.handle('arrow',12);assert(blocked.done);assert.equal(v.moves,0);assert.equal(v.history.length,0);assert.equal(JSON.stringify(v.state.cells),before);assert(u.ctx.inspect().puzzleMotion);u.ctx.cancelPuzzleMotion();
 });
 test('Water Undo during flight restores exact pre-move state and removes all overlays',()=>{
  const t=boot(),r=t.room('water'),[a,b]=r.state.path[0];t.ctx.handle('tube',a);const before=JSON.stringify(r.state);t.ctx.handle('tube',b);const scene=t.ctx.inspect().puzzleMotion;t.ctx.handle('undo');assert.equal(JSON.stringify(r.state),before);assert.equal(r.moves,0);assert.equal(t.ctx.inspect().puzzleMotion,null);assert(scene.nodes.every(n=>!n.parent.children.includes(n)));

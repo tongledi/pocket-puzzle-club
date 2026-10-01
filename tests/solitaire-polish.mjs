@@ -17,6 +17,7 @@ const source = fs.readFileSync(new URL('../dist/app.js', import.meta.url), 'utf8
   globalThis.render = render;
   globalThis.cardPositions = cardPositions;
   globalThis.animateTable = animateTable;
+  globalThis.cancelTableMotion = cancelTableMotion;
 `;
 const NORMAL_KEY = 'pocket-puzzle-v1';
 const QA_KEY = 'pocket-puzzle-qa-v1';
@@ -317,15 +318,17 @@ test('winning uses legal controller actions, stops time and supports confirmed r
 
 
 
-test('card motion is transient, scoped to Solitaire and bypassed with reduced motion', () => {
+test('card motion uses inert visual copies while real hitboxes stay at their destination', () => {
   function scene(t) {
-    const animations = [], rect = { left: 20, top: 35, width: 80, height: 120 };
-    const moving = { dataset: { cardId: '0-13', face: 'down' },
+    const animations = [], rect = { left: 20, top: 35, width: 80, height: 120 }, board={children:[],getBoundingClientRect:()=>({left:5,top:10}),appendChild(n){this.children.push(n);n.parent=this;}};
+    const moving = { dataset: { cardId: '0-13', face: 'down' },style:{opacity:''},
       getBoundingClientRect: () => ({ ...rect }), closest: () => ({}),
-      animate: (frames, options) => animations.push({ frames, options }) };
+      animate(){throw Error('Real button must never animate');},
+      cloneNode(){return {style:{},attrs:{},classList:classList(),removeAttribute(k){delete this.attrs[k];},setAttribute(k,v){this.attrs[k]=v;},remove(){this.parent.children=this.parent.children.filter(n=>n!==this);},animate(frames,options){const a={frames,options,element:this,cancel(){this.canceled=true;this.oncancel?.();}};animations.push(a);return a;}};}
+    };
     t.app.querySelectorAll = selector => selector === '.solitaire [data-card-id]' ? [moving] : [];
-    t.app.querySelector = selector => selector === '.stock-pile' ? { getBoundingClientRect: () => ({ left: 0, top: 0 }) } : null;
-    return { moving, rect, animations };
+    t.app.querySelector = selector => selector === '.stock-pile' ? { getBoundingClientRect: () => ({ left: 0, top: 0 }) } : selector === '.solitaire-board' ? board : null;
+    return { moving, rect, animations, board };
   }
   const t = boot({ reducedMotion: false }); play(t);
   const ui = scene(t), beforeState = JSON.stringify(round(t)), prior = t.ctx.cardPositions();
@@ -334,12 +337,21 @@ test('card motion is transient, scoped to Solitaire and bypassed with reduced mo
   assert.equal(ui.animations.length, 1);
   assert.match(ui.animations[0].frames[0].transform, /translate\(-110px,-135px\)/);
   assert.equal(ui.animations[0].frames.at(-1).transform, 'translate(0,0) rotate(0deg)');
+  const ghost=ui.board.children[0];assert.equal(ghost.style.pointerEvents,'none');assert.equal(ghost.attrs['aria-hidden'],'true');assert.equal(ghost.attrs.tabindex,'-1');assert.equal(ghost.attrs.inert,'');
+  assert.equal(ghost.style.left,'125px');assert.equal(ghost.style.top,'160px');assert.equal(ghost.style.width,'80px');assert.equal(ghost.style.height,'120px');
+  assert.equal(ui.moving.style.opacity,'0');assert.deepEqual(ui.moving.getBoundingClientRect(),ui.rect);
   assert.equal(JSON.stringify(round(t)), beforeState, 'visual motion must not modify any saved round data');
+  ui.animations[0].onfinish();assert.equal(ui.moving.style.opacity,'');assert.equal(ui.board.children.length,0);
   const samePosition = t.ctx.cardPositions(); ui.moving.dataset.face = 'down';
   t.ctx.animateTable(samePosition); assert.equal(ui.animations.length, 2);
-  assert.equal(ui.animations[1].frames[0].transform, 'scaleX(.12)');
+  assert.equal(ui.animations[1].frames[0].transform, 'scaleX(.12)');t.ctx.cancelTableMotion();
   t.ctx.animateTable(new Map(), true); assert.equal(ui.animations.length, 3);
-  assert.equal(ui.animations[2].frames[0].opacity, 0);
+  assert.equal(ui.animations[2].frames[0].opacity, 0);t.ctx.cancelTableMotion();
+  for(const event of ['scroll','blur','resize','hidden','pagehide','render']){
+    t.ctx.animateTable(new Map(),true);assert.equal(ui.board.children.length,1);
+    if(event==='scroll')t.docEvents.scroll();else if(event==='hidden'){t.ctx.document.hidden=true;t.docEvents.visibilitychange();t.ctx.document.hidden=false;}else if(event==='render')t.ctx.render();else t.winEvents[event]();
+    assert.equal(ui.board.children.length,0,event);assert.equal(ui.moving.style.opacity,'',event);
+  }
   const reduced = boot({ reducedMotion: true }); play(reduced); const reducedUi = scene(reduced);
   reduced.ctx.animateTable(new Map(), true); assert.equal(reducedUi.animations.length, 0);
   t.ctx.handle('open', 'water'); ui.animations.length = 0;
