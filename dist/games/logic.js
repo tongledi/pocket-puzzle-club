@@ -1,4 +1,4 @@
-import {shuffle,button,range,grids} from './core.js?v=1.8.0';
+import {shuffle,button,range,grids} from './core.js?v=1.8.1';
 const slideWon=s=>s.cells.every((n,i)=>n===(i+1)%16);
 const near=(a,b)=>Math.abs(a%4-b%4)+Math.abs((a/4|0)-(b/4|0))===1;
 export const sliding={
