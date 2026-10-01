@@ -47,3 +47,16 @@ html{scroll-behavior:auto}.play-surface{overflow:hidden}.game-toolbar button,.ga
   .blocks .placement-controls button{min-width:0;width:100%;padding-left:8px;padding-right:8px}
   .blocks .game-extra{grid-column:2;grid-row:4;padding:0;line-height:1.7}
 }
+/* Keep isolated-test status visible even where the normal preview pill hides. */
+@media(max-width:800px){
+  .site-header:has(.back-home){flex-wrap:wrap}
+  .site-header:has(.back-home) .private-pill.qa-session{display:inline-block;margin-left:auto}
+}
+/* Mahjong: side locks are not the same as a tile covering this one. */
+.mahjong-tile{position:relative}
+.mahjong-tile.side-blocked{filter:none;background:#f7efd9;border-left:3px solid #a28d5f;border-right:3px solid #a28d5f;color:#52674e}
+.mahjong-tile.covered{filter:saturate(.35);background:#d8d6cb}
+.mahjong-layer{position:absolute;top:1px;right:2px;min-width:10px;font:700 8px/1.1 Arial,sans-serif;color:#5d6856;background:#ffffffb8;border-radius:2px;padding:1px;pointer-events:none}
+.mahjong-tile.raised{border-bottom-width:6px;box-shadow:3px 6px 0 #a89f7c,4px 8px 5px #4a4b3433}
+.mahjong-key{text-align:center;font-size:12px;line-height:1.5;color:var(--muted);margin:0 auto 4px;max-width:440px}
+.preview-inner .mahjong-key,.preview-inner .mahjong-layer{display:none}
