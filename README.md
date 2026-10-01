@@ -216,3 +216,7 @@ The two-row Water board now allocates 16 fewer pixels of glass height per row at
 - Added 19 focused rule/controller/synthetic-pointer suites covering eight-direction selection, tap/drag equivalence, both endpoint orders, stale/duplicate/cancelled gestures, touch thresholds, ghost-click suppression, keyboard modifiers, overlays, Undo, reload and reduced-motion guards
 
 The full automated suite passes on the release source. Browser visual and interaction verification is recorded separately below; simulated pointer tests do not establish real phone touch or assistive-technology usability.
+
+### Logic board layout correction 1.8.1
+
+Live 1.8.0 QA verified real Word Search dragging, endpoint taps, exact Undo and reload. It also found that supplemental screen-reader word labels were visible and that the narrow Sudoku control row extended below a 667px-high viewport. A scoped visually-hidden rule now keeps the labels accessible without duplicating visible text. Sudoku allocates 32 fewer pixels to the board at that height (minimum 270px), retaining the nine-key row and normal scrolling on shorter screens. A twentieth focused regression protects both fixes. Final post-deployment verification follows below.
