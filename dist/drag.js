@@ -1,5 +1,6 @@
-import { solitaireMove } from './games/classics.js?v=1.7.2';
-import { blocks, canPlace, blockPlacement } from './games/modern.js?v=1.7.2';
+import { solitaireMove } from './games/classics.js?v=1.8.0';
+import { blocks, canPlace, blockPlacement } from './games/modern.js?v=1.8.0';
+import { words, wordLine } from './games/logic.js?v=1.8.0';
 
 // UI gestures stay transient. Only this controller action changes a round.
 // Call AFTER the controller's storage/dialog/pause/win guards and BEFORE its
@@ -21,6 +22,7 @@ export function commitDrag(game, round, drop) {
     state.selected = drop.piece;
     return blocks.action(state, 'place', drop.anchor);
   }
+  if (game.id === 'words') return words.action(state, 'line', {start:drop.start,end:drop.end});
   return false;
 }
 
@@ -88,6 +90,7 @@ export function installDragControls({ root, getContext, dispatch }) {
     for (const el of d.sources) el.classList.remove('drag-source');
     root.classList.remove('puzzle-dragging');
     d.ghost?.remove();
+    if(d.gameId==='words'){const label=root.querySelector('.word-selection');if(label)label.textContent=d.state.selected==null?'Drag a word, or tap its two ends':`Start: ${d.state.cells[d.state.selected]} · tap the last letter`;}
     try { if (root.hasPointerCapture(d.pointerId)) root.releasePointerCapture(d.pointerId); } catch {}
     if (message && d.active && currentMatches(d)) feedback(message);
     return d;
@@ -100,6 +103,10 @@ export function installDragControls({ root, getContext, dispatch }) {
       const from = el.dataset.action === 'select' ? el.dataset.value :
         el.dataset.action === 'foundation' ? `f:${el.dataset.value}` : null;
       if (from && validSolitaireSource(context.state, from)) return { el, from };
+    }
+    if (context.gameId === 'words' && el.dataset.action === 'letter') {
+      const start=Number(el.dataset.value);
+      if(Number.isInteger(start)&&start>=0&&start<100)return {el,start};
     }
     if (context.gameId === 'blocks' && el.dataset.action === 'piece') {
       const piece = Number(el.dataset.value), shape = context.state.pieces[piece];
@@ -138,6 +145,7 @@ export function installDragControls({ root, getContext, dispatch }) {
     d.active = true;
     try { root.setPointerCapture(d.pointerId); } catch { /* Document listeners remain a fallback. */ }
     root.classList.add('puzzle-dragging');
+    if(d.gameId==='words')return; // The highlighted line is the gesture; no floating ghost obscures letters.
     if (d.gameId === 'solitaire' && d.from.startsWith('t:')) {
       const [, column, index] = d.from.split(':').map((x, i) => i ? Number(x) : x);
       d.sources = [...root.querySelectorAll('.tableau .playing-card')].filter(el => {
@@ -208,7 +216,30 @@ export function installDragControls({ root, getContext, dispatch }) {
     const row = Math.max(0, Math.min(7, Math.round((y - first.top - first.height / 2) / dy)));
     return { anchor: blockAnchorAt(row, column, d.grabX, d.grabY), row, column, cells };
   }
+  function wordTarget(d,x,y){
+    const board=root.querySelector('.word-board'),cells=board?[...board.querySelectorAll('[data-action="letter"]')]:[];
+    if(cells.length!==100)return null;
+    const first=cells[0].getBoundingClientRect(),last=cells[99].getBoundingClientRect();
+    if(x<first.left||x>last.right||y<first.top||y>last.bottom)return null;
+    const dx=(cells[9].getBoundingClientRect().left-first.left)/9,dy=(cells[90].getBoundingClientRect().top-first.top)/9;
+    if(dx<=0||dy<=0)return null;
+    const col=Math.max(0,Math.min(9,Math.round((x-first.left-first.width/2)/dx))),row=Math.max(0,Math.min(9,Math.round((y-first.top-first.height/2)/dy))),end=row*10+col;
+    return {cells,end,line:wordLine(d.state,d.start,end)};
+  }
   function update(d, event) {
+    if(d.gameId==='words'){
+      clearMarks(d);d.target=null;d.failure='Release outside the board cancels the selection.';
+      const point=doc.elementFromPoint(event.clientX,event.clientY),target=point&&root.contains(point)&&point.closest('.word-board')?wordTarget(d,event.clientX,event.clientY):null,label=root.querySelector('.word-selection');
+      if(!target){if(label)label.textContent='Outside board · release to cancel';feedback('Release to cancel. Your board is unchanged.');return;}
+      const {line,cells,end}=target;
+      if(!line||line.path.length<2){mark(d,cells[d.start],'word-trace');mark(d,cells[end],'word-trace-invalid');d.failure='Choose a straight line of letters. Your board is unchanged.';if(label)label.textContent='Follow a straight line';feedback(d.failure);return;}
+      for(const i of line.path)mark(d,cells[i],'word-trace');
+      mark(d,cells[d.start],'word-trace-start');mark(d,cells[end],'word-trace-end');
+      if(label)label.textContent=line.text;feedback(`${line.text} · release to check this word`);
+      if(line.index>=0)d.target={start:d.start,end};
+      else d.failure='Not one of the remaining words. Try another line.';
+      return;
+    }
     d.ghost.style.transform = `translate(${event.clientX - d.offsetX}px, ${event.clientY - d.offsetY}px)`;
     const point = doc.elementFromPoint(event.clientX, event.clientY);
     const target = d.gameId === 'solitaire' ? solitaireTarget(point) :
@@ -257,9 +288,9 @@ export function installDragControls({ root, getContext, dispatch }) {
         return [el.dataset.cardId,{box:{left:box.left+dx,top:box.top+dy},face:el.dataset.face}];
       }));
     }
-    finish(drop ? null : 'That drop does not fit. Your board is unchanged.');
+    finish(drop ? null : d.gameId==='words'?d.failure:'That drop does not fit. Your board is unchanged.');
     if (drop) dispatch('drag', { gameId: d.gameId, runId: d.runId, expected: d.expected,
-      ...(d.gameId === 'solitaire' ? { from: d.from } : { piece: d.piece }), ...drop });
+      ...(d.gameId === 'solitaire' ? { from: d.from } : d.gameId==='blocks'?{ piece: d.piece }:{}), ...drop });
   }
   listen(root, 'pointerdown', down);
   listen(doc, 'pointermove', move, { passive: false });

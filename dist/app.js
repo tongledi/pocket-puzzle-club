@@ -1,10 +1,10 @@
-import { commitDrag, installDragControls } from './drag.js?v=1.7.2';
-import {games as classics} from './games/classics.js?v=1.7.2';
-import {games as modern} from './games/modern.js?v=1.7.2';
-import {games as logic} from './games/logic.js?v=1.7.2';
-import {clone,button} from './games/core.js?v=1.7.2';
+import { commitDrag, installDragControls } from './drag.js?v=1.8.0';
+import {games as classics} from './games/classics.js?v=1.8.0';
+import {games as modern} from './games/modern.js?v=1.8.0';
+import {games as logic} from './games/logic.js?v=1.8.0';
+import {clone,button} from './games/core.js?v=1.8.0';
 const games=[...classics,...modern,...logic],byId=Object.fromEntries(games.map(g=>[g.id,g]));
-const app=document.querySelector('#app'),VERSION='1.7.2',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
+const app=document.querySelector('#app'),VERSION='1.8.0',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
 let storageOK=true,saves={},recent=[],bestScores={},current=null,paused=false,confirmAction=null,notice='',rulesState={},lastTick=performance.now();
 let dragControls=null,helpOpen=false,settingsOpen=false,editingFavorites=false;
 let lobbyView=location.hash==='#favorites'?'favorites':'all',lobbyFilter='all',lobbyScroll=0,favoriteWarning='';
@@ -237,6 +237,7 @@ function animatePuzzle(plan){
   if(!plan||plan.game!==current||paused||helpOpen||settingsOpen||confirmAction||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   for(const target of plan.targets){
     const el=app.querySelector(target.selector);if(!el?.animate)continue;
+    if(target.kind==='slide'){const from=app.querySelector(target.fromSelector)?.getBoundingClientRect?.(),to=el.getBoundingClientRect?.();if(from&&to)el.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px)`},{transform:'translate(0,0)'}],{duration:160,easing:'ease-out'});continue;}
     const frames=target.kind==='pour'?[{transform:'translateY(-5px)',filter:'brightness(1.22)'},{transform:'translateY(0)',filter:'brightness(1)'}]:target.kind==='exit'?[{background:'#c9dfbd',transform:'scale(.86)'},{background:'transparent',transform:'scale(1)'}]:[{filter:'brightness(1.3)',transform:'scale(.94)'},{filter:'brightness(1)',transform:'scale(1)'}];
     el.animate(frames,{duration:target.kind==='pour'?280:240,easing:'ease-out'});
   }
@@ -263,9 +264,11 @@ function handle(action,value){if(syncSaves()&&!['open','home'].includes(action))
 dragControls=installDragControls({root:app,getContext:()=>current?{gameId:current,runId:saves[current].runId,state:saves[current].state,blocked:paused||helpOpen||settingsOpen||!!confirmAction||!!saves[current].finished}:null,dispatch:handle});
 app.addEventListener('toggle',e=>{if(current&&e.target.matches?.('.rules'))rulesState[current]=e.target.open;},true);
 app.addEventListener('click',e=>{const target=e.target.closest('[data-action]');if(target&&!target.disabled){try{handle(target.dataset.action,target.dataset.value);}catch(err){event('error',{category:'interaction'});const status=app.querySelector('.game-feedback');if(status)status.textContent='That move could not be completed. Restart this puzzle if it keeps happening.';console.error(err);}}if(e.target.closest('.brand')){e.preventDefault();handle('lobby','all');}if(e.target.closest('a[data-action]'))e.preventDefault();});
-document.addEventListener('keydown',e=>{if((confirmAction||helpOpen||settingsOpen)&&e.key==='Tab'){const choices=[...app.querySelectorAll('.confirm-dialog button')],ix=choices.indexOf(document.activeElement);e.preventDefault();choices[(ix+(e.shiftKey?-1:1)+choices.length)%choices.length]?.focus();return;}if(e.key==='Escape'){if(confirmAction){handle('cancel');}else if(helpOpen){handle('help');}else if(settingsOpen){handle('settings');}else if(current)handle('pause');}if(current==='sliding'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const z=saves[current].state.cells.indexOf(0),d={ArrowUp:-4,ArrowDown:4,ArrowLeft:-1,ArrowRight:1}[e.key],i=z+d;if(i>=0&&i<16)handle('tile',i);}
-if(current==='sudoku'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&['Backspace','Delete'].includes(e.key)){e.preventDefault();handle('number',0);}
-if(current==='sudoku'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&/^[0-9]$/.test(e.key)){e.preventDefault();handle('number',e.key);}});
+document.addEventListener('keydown',e=>{if((confirmAction||helpOpen||settingsOpen)&&e.key==='Tab'){const choices=[...app.querySelectorAll('.confirm-dialog button')],ix=choices.indexOf(document.activeElement);e.preventDefault();choices[(ix+(e.shiftKey?-1:1)+choices.length)%choices.length]?.focus();return;}if(e.key==='Escape'){if(confirmAction){handle('cancel');}else if(helpOpen){handle('help');}else if(settingsOpen){handle('settings');}else if(current)handle('pause');}if(current==='sliding'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const z=saves[current].state.cells.indexOf(0),d={ArrowUp:-4,ArrowDown:4,ArrowLeft:-1,ArrowRight:1}[e.key],i=z+d;if(i>=0&&i<16)handle('tile',i);}
+if(current==='sudoku'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();handle('navigate',e.key);const selected=saves.sudoku.state.selected;app.querySelector(`[data-action="cell"][data-value="${selected}"]`)?.focus({preventScroll:true});}
+if(current==='sudoku'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.toLowerCase()==='n'){e.preventDefault();if(!e.repeat)handle('notes');}
+if(current==='sudoku'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&['Backspace','Delete'].includes(e.key)){e.preventDefault();handle('number',0);}
+if(current==='sudoku'&&!paused&&!confirmAction&&!helpOpen&&!settingsOpen&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&/^[0-9]$/.test(e.key)){e.preventDefault();handle('number',e.key);}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){flushTime();if(current)event('active_foreground_duration',{active_ms:Math.round(saves[current].activeMs)});persist();}lastTick=performance.now();});
 window.addEventListener('popstate',()=>{const id=location.hash.slice(1);if(confirmAction||helpOpen||settingsOpen)lastTick=performance.now();confirmAction=null;helpOpen=false;settingsOpen=false;editingFavorites=false;if(Object.hasOwn(byId,id))openGame(id,false);else{lobbyView=id==='favorites'?'favorites':'all';handle('home','history');}});
 window.addEventListener('storage',e=>{if(e.key===FAVORITES_KEY||e.key===null){favorites=loadFavorites(favorites);render();}if(e.key===KEY||e.key===null){if(syncSaves())render(true);else if(!current)render(true);}});
