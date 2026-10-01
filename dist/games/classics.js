@@ -1,4 +1,4 @@
-import {shuffle,button,range,clone} from './core.js?v=1.9.1';
+import {shuffle,button,range,clone} from './core.js?v=1.9.2';
 const suits=['♠','♥','♣','♦'];
 const red=c=>c.suit%2===1;
 const face=c=>`${['','A','2','3','4','5','6','7','8','9','10','J','Q','K'][c.rank]}${suits[c.suit]}`;
