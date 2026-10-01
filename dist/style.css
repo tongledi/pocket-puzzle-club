@@ -216,7 +216,7 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 .mahjong-tile.hinted{outline:3px solid #bb9140;outline-offset:-3px}
 .tube.pour-destination{background:#edf1df;box-shadow:inset 0 0 0 2px #7b9965}
 .tube.selected{outline:3px solid #456d51;outline-offset:-1px;background:#e3edda}
-.tube .tube-label:after{content:none}
+.water .tube .tube-label:after{content:none}
 .tube-label{min-height:34px;margin-top:5px;line-height:1.25;color:#526b51}
 .tube-label small{display:block;font-size:10px;font-weight:650;line-height:1.3;margin-top:3px;white-space:nowrap}
 .sorted-tube .tube-glass{border-color:#658c68}
