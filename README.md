@@ -339,3 +339,16 @@ The second narrow playthrough found a double-click on Next could hit a newly exp
 - Desktop was **1188×758** CSS pixels; narrow was **406×667** at 125% zoom. All eight routes had no horizontal overflow. Active controls ended within approximately **631–658px** for the seven finite games; the checked Block result controls were at 606px. All eight original covers loaded. A **338×556 / 150%** check kept the level dialog within the viewport with its 554px of content scrolling inside a 512px area, and Keep playing remained usable. Window size and 100% zoom were restored.
 - Final aggregate `npm test` passed, including **21 progression** and **19 automatic-finish** suites. Independent review re-ran the added suites and accepted the actual motion/result screenshots. Captured application warning/error logs were empty; browser-extension metadata errors were excluded. All round-changing browser actions used `?qa=1`; normal player saves were not reset, and no app installation was attempted.
 - Remaining limits: only **three starter levels per finite game**; structural/solver-based challenge bands are preliminary; random Solitaire deals can be unwinnable; there is no cloud sync, new level content beyond the pack, or physical-phone/touch/assistive-technology validation.
+
+
+## Adversarial input and laptop-height pass 1.11.3
+
+Read-only live self-play on 1.11.2 covered novice entry/error feedback, actual moves and hints, then rapid input, keyboard access, reload and browser Back/Forward. It found a real Solitaire stock double-click mis-target: the second click hit the animated waste card. Arrow/Water also ignored input while their visible transitions ran, and at a 1188×758 desktop CSS viewport some shared-room controls were below the fold. Block Garden had 64 sequential cell tab stops and sent focus to Settings after keyboard placement. These are observed issues, not a claim about real-phone or screen-reader testing.
+
+Bounded changes:
+- Solitaire now moves pointer-inert, aria-hidden visual copies; real card buttons keep their final hitboxes. Copies are discarded on rerender, scroll, blur, resize, page hide and hidden-document transitions.
+- Arrow/Water new input finishes the preceding visual and operates on the already-committed board, with no queued or duplicate moves. Automatic Solitaire collection and next-level entry guards retain their separate gating.
+- Laptop-height desktop chrome is more compact without reducing board or control dimensions; mobile hall layout is unchanged.
+- Block Garden has one board Tab stop, arrow-key preview navigation, Home/End, Enter/Space placement, retained board focus and shape descriptions. Focus position is transient UI state and does not change save schema.
+
+Validation: full `npm test` passed locally (including updated motion/hitbox doubles and four new adversarial keyboard suites). DOM/WAAPI doubles establish controller behavior, not real browser hit testing. Localhost preview was rejected by the cloud browser (`net::ERR_BLOCKED_BY_CLIENT`), so the candidate still requires live Pages browser verification after review/publication. Do not treat this source-stage test result as final visual QA.
