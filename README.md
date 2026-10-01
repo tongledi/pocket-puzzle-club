@@ -158,3 +158,14 @@ Local aggregate tests and independent code review pass. Live browser visual/inte
 ### Narrow gameplay layout correction 1.6.1
 
 Live 1.6.0 QA verified exact Undo/reload, invalid destinations, repeated actions and an actual pointer-drag line clear. It also found the top foundation destination marker clipped by the scroll container and Block Garden's tray/actions extending unnecessarily far below a 400×668 CSS-pixel viewport. The foundation marker is now inset; narrow Block Garden removes duplicate instructions, uses a viewport-bounded square board, and compacts the tray/placement/stats spacing. All buttons remain reachable by ordinary scrolling on unusually short screens. The eight-game lobby is unchanged. This correction requires its own post-deployment visual check.
+
+### Live gameplay verification — 2026-10-01
+
+- Runtime 1.6.1 commit `a9d1d839b463c79553fcaf25da15a8b6a92b70a6`; [exact-commit Pages deployment succeeded](https://github.com/tongledi/pocket-puzzle-club/actions/runs/36858926754). All 43 source files matched remote Git blobs; two existing `.gitkeep` files were retained
+- Cloud Chromium checked at 1183×758 desktop and 400×668 narrow CSS-pixel viewports. The narrow view uses a resized browser window at 125% zoom, not device emulation or physical touch
+- Solitaire: source remains selected after invalid target; legal foundation marked; repeated foundation action counted once; actual pointer drag, exact Undo, canceled restart, reload and return to menu checked
+- Block Garden: edge rejection; score/line forecast; repeated placement counted once; actual pointer drag completed a line for the predicted 11 points; exact Undo/reload; round played through legal UI moves to no-moves ending; ended input blocked; Undo reopened the round; canceled new game and replay-original checked
+- On the corrected narrow Block Garden active screen, all eight rows, tray and Undo/Hint/Restart were visible; controls bottom measured 631.6px in the 668px viewport. Normal short-screen scrolling remains available. Solitaire footer controls were visible and the foundation marker remained inside its target
+- All eight entry/back routes and the unchanged menu checked. The other six rooms received route/layout smoke checks, not a new full gameplay audit. No horizontal page overflow observed
+- Independent screenshot review found no overlap or clipping in the final two game layouts
+- All interactions used `?qa=1` and its separate save namespace. Pointer cancellation, capture loss, visibility/blur interruption, reduced motion and stale-drop conflicts also retain synthetic regression coverage; real-phone touch and assistive-technology testing remain outstanding
