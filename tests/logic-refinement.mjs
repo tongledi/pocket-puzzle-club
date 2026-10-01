@@ -95,4 +95,7 @@ test('Word drag respects controller overlays and replacement-round remote confli
  for(const overlay of ['pause','help','settings','new']){const t=boot(),r=setRound(t,'words',words.create()),p=r.state.paths[0],d=drop(r,{start:p[0],end:p.at(-1)}),before=JSON.stringify(r.state);t.ctx.handle(overlay);t.ctx.handle('drag',d);assert.equal(JSON.stringify(r.state),before);assert.equal(r.moves,0);}
  const store=new Map(),a=boot({store}),b=boot({store});a.ctx.handle('open','words');a.ctx.persist();b.ctx.handle('open','words');const ra=a.ctx.inspect().saves.words,rb=b.ctx.inspect().saves.words,p=rb.state.paths[0],old=drop(rb,{start:p[0],end:p.at(-1)});a.ctx.handle('new');a.ctx.handle('confirm');b.ctx.handle('drag',old);assert.equal(b.ctx.inspect().saves.words.runId,a.ctx.inspect().saves.words.runId);assert.equal(b.ctx.inspect().saves.words.moves,0);
 });
+test('Word supplemental labels stay visually hidden and narrow Sudoku leaves room for controls',()=>{
+ const css=fs.readFileSync(new URL('../dist/style.css',import.meta.url),'utf8');assert.match(css,/\.words \.word-list \.sr-only\{position:absolute;width:1px;height:1px/);assert(css.includes('calc(100svh - 397px)'));assert.match(words.view(words.create()),/class="sr-only"/);
+});
 console.log(`LOGIC REFINEMENT TESTS PASSED (${checks}; VM/synthetic pointer tests, not physical-device QA)`);
