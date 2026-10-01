@@ -191,3 +191,16 @@ Live narrow-browser QA found legacy selected/hint pseudo-labels duplicating the 
 ### Narrow Water control fit 1.7.2
 
 The two-row Water board now allocates 16 fewer pixels of glass height per row at the 668px QA viewport, leaving room for a two-line hint and the Undo/Hint/Restart row. The minimum glass height stays 104px; unusually short screens retain normal scrolling. All other layouts and game behavior are unchanged.
+
+### Live matching-puzzle verification — 2026-10-01
+
+- Final runtime 1.7.2 commit `b9f2b8dacc71cca5db90e5d0478c348c46b68d3e`; [exact-commit Pages deployment succeeded](https://github.com/tongledi/pocket-puzzle-club/actions/runs/36863347816). All 44 local source files matched remote Git blobs, with two existing `.gitkeep` files retained
+- Cloud Chromium checked at 1185×758 desktop and 402×668 narrow CSS-pixel viewports. Narrow QA used a resized window at 125% zoom, not a physical phone or device emulator
+- All three games: legal and invalid moves, meaningful hints, selected-source cancellation where applicable, exact Undo/reload, canceled restart and entry/back checked through UI. Repeated Water destination input and an Arrow double-click counted one move only
+- Mahjong: side-blocked tap marked two neighbours; keyboard activation of a covered lower tile identified its upper blocker; selected matches were highlighted. A complete 36-pair round was played through UI hints and legal pairs; victory, Undo reopening and original-board restart passed
+- Water Sort: a rejected full destination retained the selected tube; complete hinted route finished this saved puzzle in 11 legal pours. Victory, Undo reopening, replay, canceled New game, pause/resume and help/Escape passed. After the final layout fix, real pour/Undo preserved exact state, duplicate labels were absent, and all seven tubes, a two-line hint and controls were visible
+- Arrow Escape: blocked ray/× badge agreed with the actual first blocker. Full 31-arrow round completed by UI hints/legal taps; victory, Undo reopening and original-board restart passed
+- Narrow control-row bottoms measured 649px for Mahjong, 634.6px for Arrows and 645.8px for Water in the 668px viewport at the checked states. Longer messages and shorter screens retain ordinary scrolling. All eight entry/back routes had no horizontal page overflow
+- Independent screenshot review accepted the final narrow Mahjong, Arrows and Water layouts. Browser zoom and desktop size were restored afterward
+- Final aggregate `npm test` passed, including 14 matching-puzzle suites and the previous full regression set. The Water solver also passed an independent 300-state exhaustive-BFS comparison; search depth is capped at 128 and reports inconclusive when any search budget is hit
+- Every destructive/new-round browser interaction used `?qa=1` and its isolated save namespace. Normal saves were not reset. No OS installation was attempted; physical touch-device and assistive-technology testing remain outstanding
