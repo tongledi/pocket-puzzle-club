@@ -181,3 +181,8 @@ Live 1.6.0 QA verified exact Undo/reload, invalid destinations, repeated actions
 - Thirteen added suites cover markings, exact blockers/paths, legal and invalid input, cancellation, rapid repeats, exact Undo, restart, overlay gates, reload/navigation, hint proof and limits, and reduced-motion effects. One hundred seeded Water detours returned 99 replay-verified solutions and one proven dead end; separate existing tests retain 1,000 generated Water routes, 1,000 Arrow boards and 500 Mahjong layouts
 
 Local aggregate tests and independent code review passed. An independent exhaustive BFS comparison agreed with Water search on 300 random two-colour/four-tube states. Live desktop/narrow-browser verification is recorded separately. This is not a real-phone touch, screen-reader or OS-installation test.
+
+
+### Water label layout fix 1.7.1
+
+Live narrow-browser QA found legacy selected/hint pseudo-labels duplicating the new concise tube labels and adding unnecessary height. The scoped CSS reset now wins the legacy specificity; the full cache-version graph advances to 1.7.1. A static regression guard protects this reset. Post-deployment narrow-layout verification is recorded separately.
