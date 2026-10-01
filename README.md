@@ -140,3 +140,16 @@ Implementation references: [browser install criteria](https://web.dev/articles/i
 ### Install guide layout fix 1.5.3
 
 Live browser QA found that the legacy confirmation action-row CSS also applied to the install guide, placing its text in narrow columns. The install guide now has an explicit, more-specific block layout; all other dialog layouts and the lobby are unchanged. A source-level CSS/markup regression guard was added, and the full runtime/manifest asset-version graph was advanced to 1.5.3. Browser visual confirmation of this correction is a separate deployment check.
+
+
+## Gameplay refinement 1.6.0 — Solitaire and Block Garden
+
+- The accepted mobile game menu is unchanged
+- Solitaire outlines legal destinations after a card is selected. An invalid destination preserves the source and explains the rule; tapping the selection again cancels. Stock and recycle messages describe the actual result. Draw-one rules and non-guaranteed random deals are unchanged
+- Block Garden previews exactly which rows/columns will clear, along with the exact points. Drag previews use the same pure placement plan as tap/commit. Unavailable tray pieces are labeled, and the next fitting piece is selected automatically
+- Placement and line-clear effects are transient, respect reduced motion, and never delay or modify a saved move. New blocks, points and line clears receive explicit feedback
+- A repeated Place event cannot commit the next piece without a new preview. Ended rounds stop board/hint input but retain Undo, new-round and replay-original options. Best score survives Undo
+- Schema-1 saves, QA isolation, cross-tab conflict checks, the eight game rules and the existing install entry remain intact
+- Thirteen added rule/controller/animation suites cover exact simultaneous-clear scoring, malformed legacy selections, invalid moves, repeat input, Undo, replay, pause/dialog cancellation, navigation/reload, reduced motion and save safety. Lifecycle tests now exercise the actual preview-then-place path
+
+Local aggregate tests and independent code review pass. Live browser visual/interaction checks for this release are recorded separately; Node and simulated-pointer tests do not establish real-phone touch or screen-reader behavior.
