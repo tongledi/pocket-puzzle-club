@@ -1,10 +1,10 @@
 {
   "name": "pocket-puzzle-club",
-  "version": "1.10.1",
+  "version": "1.11.2",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/rules.mjs && node tests/lifecycle.mjs && node tests/sudoku-variety.mjs && node tests/mahjong-variety.mjs && node tests/player-regressions.cjs && node tests/save-resilience.mjs && npm run test:paths && node tests/drag.mjs && node tests/drag-controller.mjs && node tests/solitaire-polish.mjs && node tests/clubhouse.mjs && node tests/installation.mjs && node tests/gameplay-refinement.mjs && node tests/matching-refinement.mjs && node tests/logic-refinement.mjs && node tests/tactile-feedback.mjs && node tests/solitaire-deals.mjs",
+    "test": "node tests/rules.mjs && node tests/lifecycle.mjs && node tests/sudoku-variety.mjs && node tests/mahjong-variety.mjs && node tests/player-regressions.cjs && node tests/save-resilience.mjs && npm run test:paths && node tests/drag.mjs && node tests/drag-controller.mjs && node tests/solitaire-polish.mjs && node tests/clubhouse.mjs && node tests/installation.mjs && node tests/gameplay-refinement.mjs && node tests/matching-refinement.mjs && node tests/logic-refinement.mjs && node tests/tactile-feedback.mjs && node tests/solitaire-deals.mjs && node tests/progression.mjs && node tests/auto-finish.mjs",
     "dev": "node scripts/serve.mjs",
     "test:paths": "node tests/subpath-assets.mjs"
   },
