@@ -1,4 +1,4 @@
-# Pocket Puzzle Club — felt puzzle scenes 1.12.1
+# Pocket Puzzle Club — felt scenes and Mahjong availability 1.12.2
 
 English-first, mobile-responsive casual puzzle collection. Working title only; no trademark clearance or domain purchase. Static original DOM/CSS implementations with separate pure rule modules and a shared controller. No packages, account system, ads, purchases, live AI, remote fonts, tracking SDKs or external analytics calls. Solitaire sound is optional and off by default; all other games are silent. This checkout is hosting-independent.
 
@@ -398,3 +398,8 @@ The full source-stage aggregate suite and independent code review passed before 
 - Rules, level catalogs, motion/input handling and schema-1 saves are unchanged. Full cache-version graph advances to 1.12.1. Eight added source/palette guards supplement the existing aggregate suite.
 
 Source-stage aggregate tests pass. Live desktop/narrow screenshots, input checks and exact-head deployment verification are recorded separately after publication; these static checks do not establish browser layout or physical-phone accessibility.
+
+
+### Mahjong availability refinement 1.12.2
+
+Unavailable Mahjong tiles now appear grey using their existing `covered` or `side-blocked` state. Exposed tile pictures remain readable, tile geometry and layering are unchanged, and a newly freed tile immediately regains its ivory face. Grey tiles still reject selection under the same classic rules and can explain the blocking reason; no valid-pair suggestions were added. Undo and reload recompute styling from current board state. Water's selected-tube ring now correctly overrides the legacy important outline with high-contrast gold. Five availability suites include complete legal removal sequences and real-controller Undo/reload checks.
