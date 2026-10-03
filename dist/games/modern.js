@@ -1,5 +1,5 @@
-import {levelPacks} from './levels.js?v=1.11.3';
-import {shuffle,button,range,grids,clone} from './core.js?v=1.11.3';
+import {levelPacks} from './levels.js?v=1.12.0';
+import {shuffle,button,range,grids,clone} from './core.js?v=1.12.0';
 export const waterColors=['#de6557','#477ace','#edbd43','#7760a9','#299a84'];
 const waterNames=['Coral','Blue','Gold','Violet','Jade'];
 const waterSymbols=['●','◆','★','✿','▲'];
@@ -38,7 +38,7 @@ export function waterSolve(s,{maxNodes=10000,maxMs=100,maxDepth=128}={}){
 export const water={
   levels:levelPacks.water,
   id:'water',title:'Water Sort',subtitle:'A satisfying splash of order.',tag:'Modern · Sort the colours',
-  rules:'Tap a tube, then a destination to pour its top matching drops. The top colour can pour only onto the same colour or into an empty tube, up to four drops per tube. Fill one tube per colour, leaving two empty. Starter levels have three, four and five colours; free play uses five. Every starting puzzle has a legal solution. Hints verify a full route when possible and say when the search is inconclusive. Tap a selected tube again to cancel. Symbols help distinguish the colours.',
+  rules:'Tap a tube, then a destination to pour its top matching drops. The top colour can pour only onto the same colour or into an empty tube, up to four drops per tube. Fill one tube per colour, leaving two empty. The first three levels introduce three, four and five colours. Six more fixed puzzles build up layered four- and five-colour boards; free play uses five. Every starting puzzle has a legal solution. Hints verify a full route when possible and say when the search is inconclusive. Tap a selected tube again to cancel. Symbols help distinguish the colours.',
   create(){
     let s={tubes:range(5).map(c=>[c,c,c,c]).concat([[],[]]),selected:null,message:'',path:[]};
     // Each reverse step moves one drop onto a different colour or empty tube,
