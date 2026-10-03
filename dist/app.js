@@ -1,10 +1,10 @@
-import { commitDrag, installDragControls } from './drag.js?v=1.12.1';
-import {games as classics} from './games/classics.js?v=1.12.1';
-import {games as modern} from './games/modern.js?v=1.12.1';
-import {games as logic} from './games/logic.js?v=1.12.1';
-import {clone,button} from './games/core.js?v=1.12.1';
+import { commitDrag, installDragControls } from './drag.js?v=1.12.2';
+import {games as classics} from './games/classics.js?v=1.12.2';
+import {games as modern} from './games/modern.js?v=1.12.2';
+import {games as logic} from './games/logic.js?v=1.12.2';
+import {clone,button} from './games/core.js?v=1.12.2';
 const games=[...classics,...modern,...logic],byId=Object.fromEntries(games.map(g=>[g.id,g]));
-const app=document.querySelector('#app'),VERSION='1.12.1',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
+const app=document.querySelector('#app'),VERSION='1.12.2',qaMode=new URLSearchParams(location.search).get('qa')==='1',KEY=qaMode?'pocket-puzzle-qa-v1':'pocket-puzzle-v1',EVENT_KEY=qaMode?'pocket-qa-local-events':'pocket-local-events';
 let blockFocusCell=0;
 let storageOK=true,saves={},recent=[],bestScores={},current=null,paused=false,confirmAction=null,notice='',rulesState={},lastTick=performance.now();
 let dragControls=null,helpOpen=false,settingsOpen=false,editingFavorites=false;
@@ -234,7 +234,7 @@ function settingsDialog(){
 function play(){
   if(current==='solitaire')return solitaireRoom();
   const g=byId[current],r=saves[current],won=g.won(r.state),ended=g.ended?.(r.state);
-  return `<div class="club-room"><header class="room-header">${button(menuIcon('back'),'home','','scene-icon room-back',`aria-label="Back to ${lobbyView==='favorites'?'Favourites':'All games'}"`)}<h1>${g.title}</h1>${settingsButton()}</header><main class="play-layout"><section class="play-surface ${current}" aria-label="${g.title} game"><div class="game-toolbar"><div class="run-stats"><span><b>${r.moves}</b> ${r.moves===1?'move':'moves'}</span><span id="timer">${duration(r.activeMs)}</span></div>${g.levels?levelChip(g,r):''}${button('?','help','','room-help','aria-label="How to play" aria-haspopup="dialog"')}</div><div class="board-wrap ${won||ended?'is-won result-board':''}">${paused?`<div class="pause-screen"><span>Ⅱ</span><h2>Paused</h2>${button('Keep playing','pause','','menu-primary')}</div>`:won?completionPanel(g,r):ended?blockResult(r):g.view(current==='blocks'?{...r.state,best:Number(bestScores.blocks)||0,focusCell:blockFocusCell}:r.state)}</div>${!won&&!ended?`<div class="game-feedback" role="status" aria-live="polite">${r.state.message||''}</div>`:'<div class="game-feedback result-announcement" role="status" aria-live="polite"></div>'}<div class="game-controls">${button('↶ Undo','undo','','',r.history.length&&!paused?'':'disabled')}${!won&&!ended?`${button('✦ Hint','hint','','',paused?'disabled':'')}${button('↻ Restart','restart','','',paused?'disabled':'')}`:''}</div></section></main>${qaMode?'<span class="scene-qa">QA</span>':''}${!currentRoundSaved()?'<p class="storage-warning">Saving is unavailable. Keep this tab open.</p>':''}</div>`;
+  return `<div class="club-room"><header class="room-header">${button(menuIcon('back'),'home','','scene-icon room-back',`aria-label="Back to ${lobbyView==='favorites'?'Favourites':'All games'}"`)}<h1>${g.title}</h1>${settingsButton()}</header><main class="play-layout"><section class="play-surface ${current}" aria-label="${g.title} game"><div class="game-toolbar"><div class="run-stats"><span><b>${r.moves}</b> ${r.moves===1?'move':'moves'}</span><span id="timer">${duration(r.activeMs)}</span></div>${g.levels?levelChip(g,r):''}${button('?','help','','room-help','aria-label="How to play" aria-haspopup="dialog"')}</div><div class="board-wrap ${won||ended?'is-won result-board':''}">${paused?`<div class="pause-screen"><span aria-hidden="true">Ⅱ</span><h2>Paused</h2>${button('Keep playing','pause','','menu-primary')}</div>`:won?completionPanel(g,r):ended?blockResult(r):g.view(current==='blocks'?{...r.state,best:Number(bestScores.blocks)||0,focusCell:blockFocusCell}:r.state)}</div>${!won&&!ended?`<div class="game-feedback" role="status" aria-live="polite">${r.state.message||''}</div>`:'<div class="game-feedback result-announcement" role="status" aria-live="polite"></div>'}<div class="game-controls">${button('↶ Undo','undo','','',r.history.length&&!paused?'':'disabled')}${!won&&!ended?`${button('✦ Hint','hint','','',paused?'disabled':'')}${button('↻ Restart','restart','','',paused?'disabled':'')}`:''}</div></section></main>${qaMode?'<span class="scene-qa">QA</span>':''}${!currentRoundSaved()?'<p class="storage-warning">Saving is unavailable. Keep this tab open.</p>':''}</div>`;
 }
 // Solitaire retains its low-chrome felt table within the shared clubhouse navigation.
 function solitaireRoom(){

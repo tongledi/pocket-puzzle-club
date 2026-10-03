@@ -460,3 +460,18 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 .puzzle-drag-ghost.drag-piece-outline .drag-outline-square{border-color:#f4d58e;background:#f4d58e22;box-shadow:0 1px 2px #09291f80}
 
 .club-room .word-board .letter.word-trace-invalid{color:#673e26}
+
+/* 1.12.2: unavailable Mahjong pieces are grey, from the same rule state used
+   for selection. An exposed edge returns to ivory as soon as it is free. */
+.club-room .depth-board .mahjong-tile:is(.covered,.side-blocked){background:linear-gradient(125deg,#cbd0c5,#aeb8aa);color:#354a3e;border-color:#adb6a6;filter:grayscale(1);box-shadow:1px 1px 0 #c2c8ba,1px 2px 0 #889781,2px 3px 0 #71866e,2px 4px 0 #405d49,3px 5px 3px #16382d75,inset 1px 1px 1px #e1e6d5}
+.club-room .tube.selected{outline-color:var(--room-accent)!important}
+.club-room .depth-board .mahjong-tile:is(.covered,.side-blocked):focus-visible{outline-color:#354a3e}
+/* Retain full-size pieces/buttons while keeping the narrow HUD in view. */
+@media(max-width:700px){
+  .club-room .play-layout{padding-bottom:calc(13px + env(safe-area-inset-bottom))}
+  .club-room .play-surface{padding-bottom:15px}
+  .club-room .game-toolbar{margin-bottom:8px}
+  .club-room .water .tubes{margin:3px auto}
+}
+/* Draw the pause mark in CSS so a missing Roman-numeral glyph cannot become tofu. */
+.club-room .pause-screen>span{display:inline-block;width:24px;height:32px;font-size:0;background:linear-gradient(to right,var(--room-accent) 0 35%,transparent 35% 65%,var(--room-accent) 65% 100%);border-radius:2px}
