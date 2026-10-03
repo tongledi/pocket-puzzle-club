@@ -149,7 +149,7 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
 .menu-empty{text-align:center;padding:45px 20px}.menu-empty>svg{width:64px;height:64px;color:#e0ca99;margin-bottom:20px}.menu-empty h2{font:30px Georgia,serif;margin:0 0 12px}.menu-empty p{color:#d0dac1;line-height:1.6;font-size:17px;margin-bottom:24px}.menu-primary{display:block;border-radius:14px;background:linear-gradient(#f2deab,#d8bc81);color:#294431;border:1px solid #ead6a7;box-shadow:0 3px 0 #aa8b56;min-height:48px;padding:12px 24px;font-size:17px;font-weight:600;margin:0 auto}.scene-qa{position:fixed;bottom:2px;right:5px;color:#d3caa6;font:9px/1 Arial,sans-serif;z-index:10;pointer-events:none}
 .scene-backdrop{background:#061d17ad;backdrop-filter:blur(5px);padding:20px max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}.scene-dialog{width:min(100%,430px);max-height:calc(100svh - 40px);overflow:auto;background:#f8f1de;border:2px solid #d6c18f;border-radius:24px;box-shadow:inset 0 0 0 4px #fff8e9,0 8px 0 #786748,0 20px 80px #031a1470;padding:24px;color:#2b4534}.scene-dialog .dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.scene-dialog h2{font:29px/1.1 Georgia,serif;margin:0;letter-spacing:-.6px}.scene-dialog h3{font-size:17px;margin:18px 0 10px}.scene-dialog p{font-size:16px;line-height:1.6;color:#52654e}.scene-dialog .dialog-close{width:44px;height:44px;min-width:44px;font-size:28px;background:#e8dfc8;border-color:#d6c9a6;border-radius:50%;padding:0;color:#46573d}.scene-dialog .settings-list{display:flex;flex-direction:column;gap:10px;align-items:stretch}.scene-dialog .setting-row,.scene-dialog .favorite-full{width:100%;min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:17px;background:#fffbef;border:1px solid #ded3b5;border-radius:13px;padding:12px 16px;color:#3e5940;box-shadow:0 2px 0 #daceaf}.scene-dialog .favorite-full{justify-content:flex-start}.scene-dialog .favorite-full svg{width:22px;height:22px}.scene-dialog .favorite-full.is-favorite{color:#925336;background:#ffedc4}.scene-dialog .settings-note{font-size:14px;margin:20px 0;text-align:center;line-height:1.5}.scene-dialog>.menu-primary{width:100%;margin-top:20px}.scene-dialog .table-preferences{justify-content:center;flex-wrap:wrap}.scene-dialog .table-preferences button{color:#3e5940;background:#e9e0c9;border-color:#cfc09a;font-size:15px;padding:10px 13px;min-height:46px}
 /* Shared room chrome lives in the same game world; puzzle boards stay intact. */
-.club-room{min-height:100svh}.club-room .room-header{width:100%;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:18px;padding:calc(17px + env(safe-area-inset-top)) max(24px,calc((100vw - 960px)/2));background:none;border:0;box-shadow:none;color:#fff2d3}.club-room .room-header h1{text-align:center;font:500 31px/1.1 Georgia,serif;letter-spacing:-.5px;margin:0}.club-room .room-back{padding:11px;min-height:48px;font-size:22px}.club-room .play-layout{width:100%;max-width:930px;padding:8px 26px calc(24px + env(safe-area-inset-bottom));margin:0 auto;display:flex;flex-direction:column;justify-content:center}.club-room .play-surface{background:#f9f4e5;border:2px solid #cbb98b;border-radius:24px;box-shadow:inset 0 0 0 4px #fff9e9,0 5px 0 #a28c5c,0 10px 26px #06251c45;padding:12px 28px 23px;color:#2d4738;overflow:visible}.club-room .game-toolbar{min-height:45px;margin:0 0 10px;padding:0 0 8px;border:0}.club-room .run-stats{gap:22px;font-size:16px;color:#5e6d54}.club-room .run-stats b{color:#324c39;font-weight:600}.club-room .room-help{border:1px solid #cfc3a1;background:#eae1c8;color:#4b5b3d;width:44px;height:44px;font:24px Georgia,serif;border-radius:50%;padding:0}.club-room .game-feedback{font-size:15px;line-height:1.45;min-height:22px;margin:15px 0 11px;padding:0;color:#506146}.club-room .game-controls{gap:12px;padding-top:13px;border-color:#ddd3b7}.club-room .game-controls button{min-height:48px;font-size:16px;padding:11px 20px;background:linear-gradient(#faf1da,#e7dab9);color:#3d573e;border:1px solid #cabd9a;border-radius:13px;box-shadow:0 3px 0 #c0ad84}.club-room .game-controls button:disabled{box-shadow:none}.club-room .pause-screen h2{font-size:32px}.club-room .pause-screen .menu-primary{margin-top:24px}.club-room .board-wrap{min-height:300px}.table-header .scene-icon{width:46px;height:46px;min-height:46px}.table-top-actions{min-width:46px}.table-header .table-top-actions .scene-icon{padding:11px}.table-header .table-top-actions .scene-icon svg{width:24px;height:24px}
+.club-room{min-height:100svh}.club-room .room-header{width:100%;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:18px;padding:calc(17px + env(safe-area-inset-top)) max(24px,calc((100vw - 960px)/2));background:none;border:0;box-shadow:none;color:#fff2d3}.club-room .room-header h1{text-align:center;font:500 31px/1.1 Georgia,serif;letter-spacing:-.5px;margin:0}.club-room .room-back{padding:11px;min-height:48px;font-size:22px}.club-room .play-layout{width:100%;max-width:930px;padding:8px 26px calc(24px + env(safe-area-inset-bottom));margin:0 auto;display:flex;flex-direction:column;justify-content:center}.club-room .play-surface{background:transparent;border:0;border-radius:0;box-shadow:none;padding:12px 28px 23px;color:var(--scene-cream);overflow:visible}.club-room .game-toolbar{min-height:45px;margin:0 0 10px;padding:0 0 8px;border:0}.club-room .run-stats{gap:22px;font-size:16px;color:#5e6d54}.club-room .run-stats b{color:#324c39;font-weight:600}.club-room .room-help{border:1px solid #cfc3a1;background:#eae1c8;color:#4b5b3d;width:44px;height:44px;font:24px Georgia,serif;border-radius:50%;padding:0}.club-room .game-feedback{font-size:15px;line-height:1.45;min-height:22px;margin:15px 0 11px;padding:0;color:#506146}.club-room .game-controls{gap:12px;padding-top:13px;border-color:#ddd3b7}.club-room .game-controls button{min-height:48px;font-size:16px;padding:11px 20px;background:linear-gradient(#faf1da,#e7dab9);color:#3d573e;border:1px solid #cabd9a;border-radius:13px;box-shadow:0 3px 0 #c0ad84}.club-room .game-controls button:disabled{box-shadow:none}.club-room .pause-screen h2{font-size:32px}.club-room .pause-screen .menu-primary{margin-top:24px}.club-room .board-wrap{min-height:300px}.table-header .scene-icon{width:46px;height:46px;min-height:46px}.table-top-actions{min-width:46px}.table-header .table-top-actions .scene-icon{padding:11px}.table-header .table-top-actions .scene-icon svg{width:24px;height:24px}
 .scene-enter{animation:scene-arrive .2s ease-out both}@keyframes scene-arrive{from{opacity:.5;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:700px){.menu-scene{padding:calc(15px + env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) calc(13px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));gap:15px}.menu-header{gap:8px;grid-template-columns:52px minmax(0,1fr) 52px}.menu-header h1{font-size:29px;letter-spacing:-.8px}.menu-header h1 em{font-size:16px;letter-spacing:3px;margin-top:6px}.menu-header h1 em:not(:only-child){line-height:1.1}.menu-header-slot{justify-content:flex-start}.menu-header-slot:last-child{justify-content:flex-end}.scene-icon{width:46px;height:46px;min-height:46px;border-radius:15px;padding:10px}.menu-edit{padding:9px;min-width:48px;font-size:15px}.menu-field{max-width:470px}.menu-field .game-catalog{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 16px}.menu-field .game-card{height:clamp(100px,calc((100svh - 258px)/4),151px);border-radius:20px}.menu-field .game-card:before{border-radius:18px}.menu-game-name{font-size:20px;bottom:12px;letter-spacing:-.35px}.menu-bottom{max-width:470px;gap:12px;padding-top:5px}.menu-dock{border-radius:21px;padding:5px}.menu-dock button{min-height:47px;gap:9px;font-size:16px;border-radius:16px;padding:9px}.menu-resume{min-height:45px;font-size:16px;padding:9px 14px}.menu-resume svg{width:17px;height:17px}.menu-favorite{top:7px;right:7px;width:30px;height:30px}.menu-favorite svg{width:18px;height:18px}.menu-empty{padding:40px 8px}.club-room .room-header{grid-template-columns:46px minmax(0,1fr) 46px;padding:calc(15px + env(safe-area-inset-top)) max(15px,env(safe-area-inset-right)) 15px max(15px,env(safe-area-inset-left));gap:12px}.club-room .room-header h1{font-size:28px}.club-room .room-back{padding:10px;min-height:46px}.club-room .play-layout{padding:2px 12px calc(19px + env(safe-area-inset-bottom))}.club-room .play-surface{padding:10px 13px 19px;border-radius:21px}.club-room .game-toolbar{margin-bottom:8px}.club-room .run-stats{font-size:15px;gap:18px}.club-room .game-feedback{font-size:14px;margin-top:13px;min-height:22px}.club-room .game-controls{gap:8px}.club-room .game-controls button{font-size:15px;padding:10px 9px;min-width:0;min-height:47px;max-width:140px;flex:1}.club-room .board-wrap{min-height:290px}.club-room .water .tube{width:67px}.club-room .water .tubes{max-width:340px}.club-room .mahjong-board{height:280px}.scene-dialog{padding:21px}.scene-dialog h2{font-size:27px}.scene-dialog p{font-size:15px}.scene-dialog .setting-row,.scene-dialog .favorite-full{font-size:16px}.scene-dialog .settings-note{font-size:14px}}
 @media(max-width:360px){.menu-scene{padding-left:14px;padding-right:14px}.menu-header h1{font-size:25px}.menu-header h1 em{font-size:14px}.menu-field .game-catalog{gap:15px 13px}.menu-game-name{font-size:18px}.menu-dock button{font-size:15px;gap:8px}.club-room .room-header h1{font-size:24px}.club-room .play-layout{padding-left:7px;padding-right:7px}.club-room .play-surface{padding-left:10px;padding-right:10px}}
@@ -370,3 +370,93 @@ body{background:#153c31}.app-scene{min-height:100svh}.menu-scene,.club-room{posi
   .club-room .sudoku .number-pad{margin-top:6px}
   .club-room .words .word-list{margin-top:9px;gap:6px 12px}
 }
+
+/* 1.12.1: puzzle pieces live on the clubhouse felt, not inside a page card.
+   Paper remains only where it is the playing object (tiles, cells, dialogs). */
+.club-room{--room-ink:#fff4d9;--room-muted:#d3dfc6;--room-accent:#f4d58e;--room-button:#234a39;--room-edge:#9db38b66}
+.club-room .play-layout{max-width:780px}
+.club-room .play-surface{background:transparent;border:0;border-radius:0;box-shadow:none;color:var(--room-ink)}
+.club-room .game-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;max-width:620px;width:100%;margin-left:auto;margin-right:auto}
+.club-room .room-help{grid-column:3;justify-self:end}
+.club-room .run-stats{color:var(--room-muted);white-space:nowrap}
+.club-room .run-stats b{color:var(--room-ink)}
+.club-room .game-toolbar .level-chip,.club-room .room-help{background:#173e31;border-color:#b6c49388;color:var(--room-ink);box-shadow:inset 0 1px 0 #ecf1c01a,0 2px 0 #0c2b2255}
+.club-room .game-toolbar .level-chip{min-height:38px;padding:7px 12px;font-size:13px;border-radius:10px}
+.club-room .game-feedback,.club-room .board-instruction,.club-room .game-extra,.club-room .placement-summary,.club-room .mahjong-key,.club-room .used-piece{color:var(--room-muted)}
+.club-room .piece-no-space{color:#f2d5ac}
+.club-room .puzzle-goal,.club-room .sudoku-status{color:var(--room-ink)}
+.club-room .puzzle-goal strong{font-size:16px}
+.club-room .puzzle-goal>span,.club-room .sudoku-status>span{color:var(--room-muted);font-size:13px}
+.club-room .game-controls{max-width:540px;width:100%;margin:0 auto;border:0}
+.club-room .game-controls button,.club-room .sudoku-tools button{background:linear-gradient(#315741,#204735);color:var(--room-ink);border:1px solid var(--room-edge);box-shadow:inset 0 1px 0 #ecf1c014,0 3px 0 #0c2b22}
+.club-room .game-controls button:disabled{opacity:.45;box-shadow:none}
+.club-room .sudoku-tools .pencil-toggle.active{background:#f4dfa8;color:#294431;border-color:#f2d189;box-shadow:inset 0 0 0 2px #b59451}
+.club-room button:focus-visible{outline:3px solid var(--room-accent);outline-offset:3px}
+.club-room .grid-board button:focus-visible{outline:3px solid #9b621c;outline-offset:-3px}
+.club-room .block-piece.selected{outline-color:var(--room-accent)!important;background:#143e3080;border-radius:10px}
+.club-room .placement-controls .primary{background:linear-gradient(#f2deab,#d8bc81);color:#294431;border-color:#ead6a7;box-shadow:0 3px 0 #aa8b56;border-radius:10px}
+
+/* Board-sized material boundaries, with the surrounding felt left open. */
+.club-room .sliding-board{background:linear-gradient(145deg,#775f3e,#514127);border:1px solid #c2a36d;box-shadow:inset 0 2px 9px #2b231d66,0 4px 8px #08251c40}
+.club-room .slide-tile.empty{background:#382f2180;color:#e2ca95;border-color:#c5aa72;box-shadow:inset 0 2px 5px #241b184d}
+.club-room .arrow-board{background:#153c30;border:1px solid #99b18a77;box-shadow:inset 0 2px 10px #09291f4d,0 3px 8px #0a2d2233}
+.club-room .arrow-tile{color:#273e36;box-shadow:0 2px 0 #0c291f55}
+.club-room .arrow-tile.empty{box-shadow:none}
+.club-room .arrow-tile.exit-path{box-shadow:inset 0 0 0 2px #c9a584}
+.club-room .arrow-tile.clear-path{box-shadow:inset 0 0 0 2px #a2bc86}
+.club-room .arrow-tile.exit-blocker{box-shadow:inset 0 0 0 3px #9f5746}
+.club-room .mahjong-board.depth-board{background:radial-gradient(ellipse at 45% 25%,#375e46,#214735);border-color:#aac09255;box-shadow:inset 0 2px 10px #102f294d,0 2px 0 #0b2f254d}
+.club-room .mahjong-tile:focus-visible{outline:3px solid #986019;outline-offset:-3px}
+.club-room .sudoku-board{border-color:#b3c394;box-shadow:0 3px 12px #0a281e66}
+.club-room .word-board{padding:5px;background:#123c2f;border:1px solid #a6ba8d88;border-radius:8px;box-shadow:0 3px 12px #0a281e55}
+.club-room .word-board .letter:not(.found):not(.word-trace):not(.word-trace-invalid){color:#273e36}
+.club-room .words .word-list>span{background:#173e31;color:var(--room-ink);border:1px solid #91a67e55}
+.club-room .words .word-list .found-word{background:#c3d4ac;color:#294c31;border-color:#c3d4ac}
+.club-room .sudoku .number-pad button{color:#28462f;opacity:1}
+.club-room .sudoku .number-pad button:disabled{background:#bacab2;color:#42573f;border-color:#9eb28f;opacity:.65}
+
+/* Glass remains translucent on felt; selection is outlined without a white slab. */
+.club-room .tube-glass{background:#d5e8dc1c;border-color:#c1d8cf;box-shadow:inset 3px 0 0 #f5fffa17,0 3px 8px #092e2555}
+.club-room .tube-label{color:var(--room-muted);font-size:13px}
+.club-room .tube-label small{font-size:11px}
+.club-room .tube.selected{background:#123c31b3;outline-color:var(--room-accent);box-shadow:0 0 0 1px #183c31}
+.club-room .tube.selected .tube-label{color:var(--room-ink)}
+.club-room .tube.hint-destination{outline-color:var(--room-accent);background:#173e31}
+.club-room .sorted-tube .tube-glass{border-color:#bad992;box-shadow:0 0 0 1px #152f244d,inset 0 0 0 1px #cce4a944}
+
+/* Block sockets contrast with solid pieces, including transient drag previews. */
+.club-room .block-board{background:#153b2e;border:1px solid #9eb58866;box-shadow:inset 0 2px 9px #09291f66,0 3px 8px #0b2c2333}
+.club-room .block-cell{background:#315b47;box-shadow:inset 0 1px 3px #102f2480,inset 0 0 0 1px #79966b55;color:#fff4d9}
+.club-room .block-cell.filled,.club-room .piece-grid i{background:#bbcc94;box-shadow:inset 0 1px 0 #dfebbf,inset 0 -3px 0 #81945f}
+.club-room .block-cell.ghost-valid,.club-room .block-cell.drag-cell-valid{background:#dae3b6;box-shadow:inset 0 0 0 3px #8eaf68;color:#29452f}
+.club-room .block-cell.ghost-invalid,.club-room .block-cell.drag-cell-invalid{background:#e8b6a2;box-shadow:inset 0 0 0 3px #a55e46;color:#6f3427}
+.club-room .block-cell.clear-preview,.club-room .block-cell.drag-clear-preview{background:#e4d6a9;box-shadow:inset 0 0 0 3px #bb9140;color:#4b432b}
+.puzzle-dragging .club-room .block-cell:not(.drag-cell-valid):not(.drag-cell-invalid):not(.drag-clear-preview){background:#315b47;box-shadow:inset 0 1px 3px #102f2480,inset 0 0 0 1px #79966b55;color:transparent}
+.puzzle-dragging .club-room .block-cell.filled:not(.drag-cell-valid):not(.drag-cell-invalid):not(.drag-clear-preview){background:#bbcc94;box-shadow:inset 0 1px 0 #dfebbf,inset 0 -3px 0 #81945f}
+.club-room .block-board .block-cell:focus-visible{outline-color:var(--room-accent)}
+
+/* Quiet end states belong to the same scene. Dialogs keep their paper treatment. */
+.club-room .pause-screen>span,.club-room .puzzle-result .win-suits{color:var(--room-accent)}
+.club-room .pause-screen h2,.club-room .puzzle-result h2,.club-room .puzzle-result .result-stats b{color:var(--room-ink)}
+.club-room .pause-screen p,.club-room .puzzle-result>p,.club-room .puzzle-result .result-stats,.club-room .puzzle-result .result-replay,.club-room .block-result>p{color:var(--room-muted)}
+.club-room .block-result{border-color:#abc19144}
+.club-room .round-end,.club-room .end-note{color:#f2d5ac}
+@media(max-width:700px){
+  .club-room .play-surface{padding-left:4px;padding-right:4px}
+  .club-room .game-toolbar{gap:9px;max-width:430px;margin-bottom:12px}
+  .club-room .run-stats{font-size:14px;gap:10px}
+  .club-room .game-toolbar .level-chip{font-size:12px;min-height:36px;padding:6px 9px}
+  .club-room .puzzle-goal strong{font-size:15px}
+  .club-room .puzzle-goal>span,.club-room .sudoku-status>span{font-size:12px}
+  .club-room .water .tubes{margin-top:12px;margin-bottom:8px}
+  .club-room .words .word-list>span{font-size:12px}
+}
+@media(max-width:360px){
+  .club-room .run-stats{font-size:12px;gap:8px}
+  .club-room .game-toolbar{gap:7px}
+}
+
+/* Drag ghosts live directly under body, outside the room color scope. */
+.puzzle-drag-ghost.drag-piece-outline .drag-outline-square{border-color:#f4d58e;background:#f4d58e22;box-shadow:0 1px 2px #09291f80}
+
+.club-room .word-board .letter.word-trace-invalid{color:#673e26}
