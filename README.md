@@ -1,4 +1,4 @@
-# Pocket Puzzle Club — Water level expansion 1.12
+# Pocket Puzzle Club — felt puzzle scenes 1.12.1
 
 English-first, mobile-responsive casual puzzle collection. Working title only; no trademark clearance or domain purchase. Static original DOM/CSS implementations with separate pure rule modules and a shared controller. No packages, account system, ads, purchases, live AI, remote fonts, tracking SDKs or external analytics calls. Solitaire sound is optional and off by default; all other games are silent. This checkout is hosting-independent.
 
@@ -35,7 +35,7 @@ The pack uses structural challenge progression, not calibrated human difficulty:
 
 ## Shared behaviour
 
-Home presents eight original game-specific SVG covers, Games/Favourites navigation, real browser-local favourites, and a Continue entry for the latest unfinished round. Favourite preferences are stored separately from schema-1 round data and isolated in QA mode. The seven puzzle rooms share one compact clubhouse header and centred play frame; Solitaire retains its full-height felt table. Entry/Back preserves the lobby collection and scroll position, while Explore all 8 games resets it. Each game has pause, restart-same-board, new-round confirmation, hints, and up to 120 undo states. Number of moves counts successful player board mutations; hint-applied changes are not player moves. Hint use is counted in the saved round. Finite-puzzle results display moves, active time and hints; Block Garden displays points and the saved best score. A hint-assisted completion is not an unassisted win.
+Home presents eight original game-specific SVG covers, Games/Favourites navigation, real browser-local favourites, and a Continue entry for the latest unfinished round. Favourite preferences are stored separately from schema-1 round data and isolated in QA mode. The seven puzzle rooms share a compact clubhouse header and open felt play area, with individual board-sized trays and distinct playing pieces; Solitaire retains its full-height felt table. Entry/Back preserves the lobby collection and scroll position, while Explore all 8 games resets it. Each game has pause, restart-same-board, new-round confirmation, hints, and up to 120 undo states. Number of moves counts successful player board mutations; hint-applied changes are not player moves. Hint use is counted in the saved round. Finite-puzzle results display moves, active time and hints; Block Garden displays points and the saved best score. A hint-assisted completion is not an unassisted win.
 
 Browser-local save schema 1 includes current state, initial board, history, timer, hints, first-play and outcome flags. No cross-device/cloud save. Private/incognito modes or clearing browser data can erase progress; storage failures show a warning. Compatible future releases must retain schema-1 saves or migrate them; product version is not used as a reason to discard compatible saves. Future incompatible migrations must preserve a backup and display a recovery choice. Stable game hash links and browser Back/Forward navigation are supported. Opening/switching games resets the viewport to the top; within-game focus restoration uses preventScroll. Instruction disclosure state survives moves. Active play excludes confirmation-modal waiting time.
 
@@ -388,3 +388,13 @@ The full source-stage aggregate suite and independent code review passed before 
 - All eight entry/back routes had **no horizontal overflow** at both sizes. Narrow control-row bottoms were about **608–668px**; the Water pack-end controls ended at about **611px**. Desktop checked control rows ended within **647–746px**. All eight original lobby covers loaded. Captured application warning/error logs were empty; browser-extension metadata errors were excluded.
 - Full `npm test` passed before publication and was independently rerun: **17 new exhaustive expansion suites** include **309,453 independent/runtime transition comparisons**, all **6,777 reachable-state Hint checks**, unchanged original fixtures and distinct layouts; **five added compatibility suites** cover old writers, 3→9 upgrade and saved-mode flow. The aggregate prints 298 PASS lines, including repeated imported progression checks; this is not a count of unique independent tests.
 - Every browser round-changing action used the isolated `?qa=1` namespace. Normal player saves were not reset. The original **1188×848 window / 1180×757 viewport and 100% zoom** were restored. No physical phone, touch hardware, screen reader or OS installation was tested.
+
+
+## Felt puzzle scenes 1.12.1
+
+- Removed the oversized cream page-card shell from all seven shared puzzle rooms. HUD, feedback and controls now sit directly on the clubhouse felt. The accepted lobby and Solitaire composition are unchanged.
+- Retained functional board boundaries and readable playing pieces: cream Sudoku/Word cells and Mahjong/Arrow tiles, a warm Sliding tray, dark Block sockets and translucent Water glass.
+- Explicit scene text, tile ink, selected/hinted/invalid states, keyboard outlines, drag ghosts and pause/completion styling prevent pale-on-pale or dark-on-felt regressions. Primary/secondary/accent scene text measures at least 4.5:1 against the lightest felt stop.
+- Rules, level catalogs, motion/input handling and schema-1 saves are unchanged. Full cache-version graph advances to 1.12.1. Eight added source/palette guards supplement the existing aggregate suite.
+
+Source-stage aggregate tests pass. Live desktop/narrow screenshots, input checks and exact-head deployment verification are recorded separately after publication; these static checks do not establish browser layout or physical-phone accessibility.
