@@ -35,7 +35,7 @@ The exhaustive validator independently implements maximal pours, compares legal 
 
 ## Completion gate and remaining work
 
-This iteration ends only after full aggregate tests, independent review, verified remote blobs and Pages deployment, and actual desktop/narrow consecutive play of all nine Water levels. Include 3→4 upgrade, reload/Undo, repeated Next, picker scrolling, replay and free-play resume. Proof-guided automated play does not establish unaided human difficulty.
+This iteration's release gate passed on 2026-10-03: full aggregate tests, independent review, all 62 verified remote blobs, successful exact-commit Pages deployment, and two complete desktop/narrow nine-level plays. Live checks included 3→4 upgrade, old-tab preservation, reload/Undo, repeated Next, picker scrolling, replay, dead-end recovery and free-play resume. See the final 1.12.0 live-verification record in [README](README.md#live-water-expansion-verification--2026-10-03). Proof-guided automated play does not establish unaided human difficulty.
 
 Next useful gate: a small measured audience pilot rather than another automatic content expansion. Before a formal pilot, resolve commercial hosting/analytics decisions with the owner and obtain physical-phone tests. Collect first-session completion/drop-off, voluntary next-level/replay choice, confusion points and return interest. Use that evidence to select one next change; do not infer retention from synthetic solves.
 
